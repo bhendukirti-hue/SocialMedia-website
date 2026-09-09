@@ -353,7 +353,7 @@ const Home = () => {
 
           <button
             type="button"
-            onClick={() => navigate("/dashboard/create-post")}
+            onClick={() => navigate("/profile/createpost")}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#162A46] shadow-sm transition hover:bg-gray-50 active:scale-95"
           >
             <FiPlus size={24} />
@@ -426,7 +426,7 @@ const Home = () => {
 
               <button
                 type="button"
-                onClick={() => navigate("/dashboard/create-post")}
+                onClick={() => navigate("/profile/createpost")}
                 className="w-[70px] shrink-0 text-center"
               >
                 <div className="relative mx-auto h-[62px] w-[62px]">
@@ -506,7 +506,7 @@ const Home = () => {
 
               <button
                 type="button"
-                onClick={() => navigate("/dashboard/create-post")}
+                onClick={() => navigate("/profile/createpost")}
                 className="mt-6 rounded-xl bg-[#162A46] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#203B60] active:scale-95"
               >
                 Create Post

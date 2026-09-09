@@ -1030,7 +1030,7 @@ const Profile = () => {
 
                       <button
                         type="button"
-                        onClick={() => navigate("/dashboard/create-post")}
+                        onClick={() => navigate("/profile/createpost")}
                         className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                       >
                         <FiPlus size={16} />
@@ -1284,7 +1284,7 @@ const Profile = () => {
               {isOwnProfile && (
                 <button
                   type="button"
-                  onClick={() => navigate("/dashboard/create-post")}
+                  onClick={() => navigate("/profile/createpost")}
                   className="mt-5 flex items-center gap-2 rounded-xl bg-[#0B1F33] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#153B5A]"
                 >
                   <FiPlus size={16} />
@@ -1377,7 +1377,7 @@ const Profile = () => {
             <div className="flex justify-center px-5 py-6">
               <button
                 type="button"
-                onClick={() => navigate("/dashboard/create-post")}
+                onClick={() => navigate("/profile/createpost")}
                 className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-[#0B1F33]"
               >
                 <FiPlus size={16} />
@@ -1420,7 +1420,7 @@ const Profile = () => {
 
           <button
             type="button"
-            onClick={() => navigate("/dashboard/create-post")}
+            onClick={() => navigate("/profile/createpost")}
             className="flex h-12 w-12 items-center justify-center rounded-full text-[#0B1F33] transition hover:bg-gray-100"
             title="Create Post"
           >
