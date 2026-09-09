@@ -20,15 +20,21 @@ const messageSchema = new mongoose.Schema(
       required: true,
     },
 
-    message: {
+    text: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 5000,
     },
 
-    seen: {
+    isRead: {
       type: Boolean,
       default: false,
+    },
+
+    readAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -36,4 +42,8 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Message", messageSchema);
+messageSchema.index({ conversation: 1, createdAt: 1 });
+
+module.exports =
+  mongoose.models.Message ||
+  mongoose.model("Message", messageSchema);

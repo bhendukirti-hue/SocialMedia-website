@@ -21,16 +21,30 @@ import EditProfile from "../pages/profile/EditProfile";
 import CreatePost from "../pages/profile/CreatePost";
 import Notifications from "../pages/notifications/Notifications";
 
-// Search & Other User Profile
+// ==========================================
+// SEARCH & OTHER USER PROFILE
+// ==========================================
+
 import Search from "../pages/search/Search";
 import UserProfile from "../pages/profile/UserProfile";
+
+// ==========================================
+// REELS
+// ==========================================
+
+import Reels from "../pages/reels/Reels";
+
+// ==========================================
+// MESSAGES
+// ==========================================
+
+import Messages from "../pages/messages/Messages";
 
 // ==========================================
 // PROTECTED ROUTING
 // ==========================================
 
 import PrivateRouting from "../components/ProtectedRoute";
-import Reels from "../pages/reels/Reels";
 
 // ==========================================
 // ROUTES
@@ -60,6 +74,8 @@ export const routes = createBrowserRouter([
   // =====================================================
   // HOME
   // Protected
+  //
+  // /
   // =====================================================
 
   {
@@ -79,29 +95,26 @@ export const routes = createBrowserRouter([
   },
 
   // =====================================================
-// REELS
-// Protected
-//
-// /reels
-//
-// Opens vertical video reels
-// =====================================================
+  // REELS
+  // Protected
+  //
+  // /reels
+  // =====================================================
 
-{
-  path: "/reels",
-  element: (
-    <PrivateRouting>
-      <Reels />
-    </PrivateRouting>
-  ),
-},
+  {
+    path: "/reels",
+    element: (
+      <PrivateRouting>
+        <Reels />
+      </PrivateRouting>
+    ),
+  },
 
   // =====================================================
   // MY PROFILE
   // Protected
   //
   // /profile
-  // Opens the logged-in user's profile
   // =====================================================
 
   {
@@ -121,8 +134,6 @@ export const routes = createBrowserRouter([
   //
   // Example:
   // /profile/68a123456789
-  //
-  // Opens the selected user's profile
   // =====================================================
 
   {
@@ -138,7 +149,7 @@ export const routes = createBrowserRouter([
   // SEARCH
   // Protected
   //
-  // Search username / user ID
+  // /search
   // =====================================================
 
   {
@@ -150,10 +161,11 @@ export const routes = createBrowserRouter([
     ),
   },
 
-  
   // =====================================================
   // EDIT PROFILE
   // Protected
+  //
+  // /profile/editprofile
   // =====================================================
 
   {
@@ -168,6 +180,8 @@ export const routes = createBrowserRouter([
   // =====================================================
   // CREATE POST
   // Protected
+  //
+  // /profile/createpost
   // =====================================================
 
   {
@@ -182,6 +196,8 @@ export const routes = createBrowserRouter([
   // =====================================================
   // NOTIFICATIONS
   // Protected
+  //
+  // /notifications
   // =====================================================
 
   {
@@ -189,6 +205,24 @@ export const routes = createBrowserRouter([
     element: (
       <PrivateRouting>
         <Notifications />
+      </PrivateRouting>
+    ),
+  },
+
+  // =====================================================
+  // MESSAGES
+  // Protected
+  //
+  // /messages
+  //
+  // Opens private real-time messaging
+  // =====================================================
+
+  {
+    path: "/messages",
+    element: (
+      <PrivateRouting>
+        <Messages />
       </PrivateRouting>
     ),
   },

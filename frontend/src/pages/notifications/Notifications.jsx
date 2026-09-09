@@ -7,7 +7,7 @@ import {
   FiHeart,
   FiUserPlus,
   FiMessageCircle,
-  FiCheck,
+  FiBell,
 } from "react-icons/fi";
 
 const Notifications = () => {
@@ -36,10 +36,7 @@ const Notifications = () => {
         }
       );
 
-      console.log(
-        "NOTIFICATIONS:",
-        response.data
-      );
+      console.log("NOTIFICATIONS:", response.data);
 
       if (response.data.success) {
         setNotifications(
@@ -49,8 +46,7 @@ const Notifications = () => {
     } catch (error) {
       console.error(
         "Notification error:",
-        error.response?.data ||
-          error.message
+        error.response?.data || error.message
       );
     } finally {
       setLoading(false);
@@ -58,7 +54,7 @@ const Notifications = () => {
   };
 
   // ==========================================
-  // MARK ALL READ
+  // MARK ALL AS READ
   // ==========================================
 
   const markAllAsRead = async () => {
@@ -80,8 +76,39 @@ const Notifications = () => {
     } catch (error) {
       console.error(
         "Mark read error:",
-        error.response?.data ||
-          error.message
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  // ==========================================
+  // MARK SINGLE NOTIFICATION AS READ
+  // ==========================================
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await axios.put(
+        `${API_URL}/notifications/${notificationId}/read`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
+      setNotifications((current) =>
+        current.map((notification) =>
+          notification._id === notificationId
+            ? {
+                ...notification,
+                isRead: true,
+              }
+            : notification
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Mark notification read error:",
+        error.response?.data || error.message
       );
     }
   };
@@ -107,7 +134,9 @@ const Notifications = () => {
     if (notification.type === "like") {
       return (
         <>
-          <strong>{username}</strong>{" "}
+          <strong className="text-gray-900">
+            {username}
+          </strong>{" "}
           liked your post.
         </>
       );
@@ -116,7 +145,9 @@ const Notifications = () => {
     if (notification.type === "follow") {
       return (
         <>
-          <strong>{username}</strong>{" "}
+          <strong className="text-gray-900">
+            {username}
+          </strong>{" "}
           started following you.
         </>
       );
@@ -125,7 +156,9 @@ const Notifications = () => {
     if (notification.type === "comment") {
       return (
         <>
-          <strong>{username}</strong>{" "}
+          <strong className="text-gray-900">
+            {username}
+          </strong>{" "}
           commented on your post.
         </>
       );
@@ -133,7 +166,9 @@ const Notifications = () => {
 
     return (
       <>
-        <strong>{username}</strong>{" "}
+        <strong className="text-gray-900">
+          {username}
+        </strong>{" "}
         interacted with you.
       </>
     );
@@ -146,9 +181,9 @@ const Notifications = () => {
   const getIcon = (type) => {
     if (type === "like") {
       return (
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-500">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
           <FiHeart
-            size={18}
+            size={19}
             fill="currentColor"
           />
         </div>
@@ -157,21 +192,70 @@ const Notifications = () => {
 
     if (type === "follow") {
       return (
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-          <FiUserPlus size={18} />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+          <FiUserPlus size={19} />
         </div>
       );
     }
 
     if (type === "comment") {
       return (
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-600">
-          <FiMessageCircle size={18} />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-600">
+          <FiMessageCircle size={19} />
         </div>
       );
     }
 
-    return null;
+    return (
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+        <FiBell size={19} />
+      </div>
+    );
+  };
+
+  // ==========================================
+  // CLICK NOTIFICATION
+  // ==========================================
+
+  const handleNotificationClick = async (
+    notification
+  ) => {
+    // Mark as read
+    if (!notification.isRead) {
+      await markNotificationAsRead(
+        notification._id
+      );
+    }
+
+    // FOLLOW notification
+    if (
+      notification.type === "follow" &&
+      notification.sender?._id
+    ) {
+      navigate(
+        `/profile/${notification.sender._id}`
+      );
+      return;
+    }
+
+    // LIKE / COMMENT notification
+    if (
+      (notification.type === "like" ||
+        notification.type === "comment") &&
+      notification.post?._id
+    ) {
+      navigate(
+        `/profile/${notification.sender._id}`
+      );
+      return;
+    }
+
+    // If sender exists, open sender profile
+    if (notification.sender?._id) {
+      navigate(
+        `/profile/${notification.sender._id}`
+      );
+    }
   };
 
   // ==========================================
@@ -199,7 +283,9 @@ const Notifications = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
 
-      {/* HEADER */}
+      {/* ======================================
+          HEADER
+      ====================================== */}
 
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
 
@@ -220,7 +306,7 @@ const Notifications = () => {
           <button
             type="button"
             onClick={markAllAsRead}
-            className="text-sm font-semibold text-[#162A46]"
+            className="text-sm font-semibold text-[#162A46] transition hover:opacity-70"
           >
             Read all
           </button>
@@ -229,7 +315,9 @@ const Notifications = () => {
 
       </header>
 
-      {/* CONTENT */}
+      {/* ======================================
+          CONTENT
+      ====================================== */}
 
       <main className="mx-auto w-full max-w-[700px] px-4 py-5 pb-10">
 
@@ -237,7 +325,7 @@ const Notifications = () => {
           <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
 
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
-              <FiHeart
+              <FiBell
                 size={34}
                 className="text-gray-400"
               />
@@ -248,8 +336,8 @@ const Notifications = () => {
             </h2>
 
             <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
-              When someone likes, comments
-              on your posts or follows you,
+              When someone likes or comments
+              on your posts, or follows you,
               you'll see it here.
             </p>
 
@@ -270,20 +358,31 @@ const Notifications = () => {
                   defaultProfilePicture;
 
                 return (
-                  <div
+                  <button
                     key={notification._id}
-                    className={`flex items-center gap-3 border-b border-gray-100 px-4 py-4 transition last:border-b-0 hover:bg-gray-50 ${
+                    type="button"
+                    onClick={() =>
+                      handleNotificationClick(
+                        notification
+                      )
+                    }
+                    className={`flex w-full items-center gap-3 border-b border-gray-100 px-4 py-4 text-left transition last:border-b-0 hover:bg-gray-50 ${
                       !notification.isRead
                         ? "bg-blue-50/40"
                         : "bg-white"
                     }`}
                   >
 
-                    {/* PROFILE */}
+                    {/* ==================================
+                        PROFILE PICTURE
+                    ================================== */}
 
                     <img
                       src={profilePicture}
-                      alt="User"
+                      alt={
+                        notification.sender
+                          ?.username || "User"
+                      }
                       className="h-12 w-12 shrink-0 rounded-full object-cover"
                       onError={(e) => {
                         e.currentTarget.src =
@@ -291,7 +390,9 @@ const Notifications = () => {
                       }}
                     />
 
-                    {/* MESSAGE */}
+                    {/* ==================================
+                        MESSAGE
+                    ================================== */}
 
                     <div className="min-w-0 flex-1">
 
@@ -301,27 +402,43 @@ const Notifications = () => {
                         )}
                       </p>
 
+                      {/* COMMENT PREVIEW */}
+
+                      {notification.type ===
+                        "comment" &&
+                        notification.comment && (
+                          <p className="mt-1 truncate text-xs text-gray-500">
+                            "{notification.comment}"
+                          </p>
+                        )}
+
                       <p className="mt-1 text-xs text-gray-400">
-                        {new Date(
-                          notification.createdAt
-                        ).toLocaleString()}
+                        {notification.createdAt
+                          ? new Date(
+                              notification.createdAt
+                            ).toLocaleString()
+                          : ""}
                       </p>
 
                     </div>
 
-                    {/* ICON */}
+                    {/* ==================================
+                        TYPE ICON
+                    ================================== */}
 
                     {getIcon(
                       notification.type
                     )}
 
-                    {/* UNREAD */}
+                    {/* ==================================
+                        UNREAD DOT
+                    ================================== */}
 
                     {!notification.isRead && (
                       <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#162A46]" />
                     )}
 
-                  </div>
+                  </button>
                 );
               }
             )}
@@ -336,3 +453,5 @@ const Notifications = () => {
 };
 
 export default Notifications;
+
+

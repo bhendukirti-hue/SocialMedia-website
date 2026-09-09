@@ -1,5 +1,6 @@
 // app.js
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -23,7 +24,7 @@ app.use(cookieParser());
 
 app.use(
     cors({
-        origin: "http://localhost:5173", // React Frontend URL
+        origin: "http://localhost:5173",
         credentials: true,
     })
 );
@@ -51,23 +52,30 @@ const router = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route");
 const postRoutes = require("./routes/post.route");
 const commentRoutes = require("./routes/comment.route");
-// const likeRoutes = require("./routes/like.routes");
 const followRoutes = require("./routes/follow.route");
-// const conversationRoutes = require("./routes/conversation.routes");
-// const messageRoutes = require("./routes/message.routes");
 const notificationRoutes = require("./routes/notification.route");
-// const storyRoutes = require("./routes/story.routes");
+
+// ✅ Messaging Route
+const messageRoutes = require("./routes/message.route");
+
+// =======================
+// Route Mounting
+// =======================
 
 app.use("/api/auth", router);
+
 app.use("/api/users", userRoutes);
+
 app.use("/api/posts", postRoutes);
+
 app.use("/api/posts", commentRoutes);
-// app.use("/api/likes", likeRoutes);
+
 app.use("/api/follows", followRoutes);
-// app.use("/api/conversations", conversationRoutes);
-// app.use("/api/messages", messageRoutes);
+
 app.use("/api/notifications", notificationRoutes);
-// app.use("/api/stories", storyRoutes);
+
+// ✅ Messaging API
+app.use("/api/messages", messageRoutes);
 
 // =======================
 // 404 Middleware

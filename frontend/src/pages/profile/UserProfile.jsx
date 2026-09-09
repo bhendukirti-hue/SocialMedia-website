@@ -708,44 +708,58 @@ const UserProfile = () => {
           </div>
 
           {/* ACTION BUTTONS */}
-          {!isOwnProfile && currentUser && (
-            <div className="flex gap-3 mt-6">
+{!isOwnProfile && currentUser && (
+  <div className="flex gap-3 mt-6">
 
-              {isFollowing ? (
-                <button
-                  onClick={handleUnfollow}
-                  disabled={followLoading}
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-[#162A46] font-semibold hover:bg-gray-50 transition disabled:opacity-60"
-                >
-                  <FiUserCheck size={18} />
+    {/* FOLLOW / UNFOLLOW */}
+    {isFollowing ? (
+      <button
+        onClick={handleUnfollow}
+        disabled={followLoading}
+        className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-[#162A46] font-semibold hover:bg-gray-50 transition disabled:opacity-60"
+      >
+        <FiUserCheck size={18} />
 
-                  {followLoading
-                    ? "Please wait..."
-                    : "Following"}
-                </button>
-              ) : (
-                <button
-                  onClick={handleFollow}
-                  disabled={followLoading}
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#162A46] text-white font-semibold hover:bg-[#20395F] transition disabled:opacity-60"
-                >
-                  <FiUserPlus size={18} />
+        {followLoading
+          ? "Please wait..."
+          : "Following"}
+      </button>
+    ) : (
+      <button
+        onClick={handleFollow}
+        disabled={followLoading}
+        className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#162A46] text-white font-semibold hover:bg-[#20395F] transition disabled:opacity-60"
+      >
+        <FiUserPlus size={18} />
 
-                  {followLoading
-                    ? "Please wait..."
-                    : "Follow"}
-                </button>
-              )}
+        {followLoading
+          ? "Please wait..."
+          : "Follow"}
+      </button>
+    )}
 
-              <button
-                onClick={handleShareProfile}
-                className="px-5 py-2.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition"
-              >
-                <FiShare2 size={18} />
-              </button>
+    {/* MESSAGE BUTTON */}
+    <button
+      type="button"
+      onClick={() => navigate(`/messages?user=${user._id}`)}
+      className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-[#162A46] bg-white text-[#162A46] font-semibold hover:bg-gray-50 transition"
+    >
+      <FiMessageCircle size={18} />
+      <span className="hidden sm:inline">
+        Message
+      </span>
+    </button>
 
-            </div>
-          )}
+    {/* SHARE */}
+    <button
+      onClick={handleShareProfile}
+      className="px-5 py-2.5 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition"
+    >
+      <FiShare2 size={18} />
+    </button>
+
+  </div>
+)}
 
           {/* ======================================
               STATS
