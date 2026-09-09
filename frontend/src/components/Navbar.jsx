@@ -523,7 +523,7 @@ const Navbar = () => {
 
                 </NavLink>
 
-
+               
                 {/* Create Post */}
 
                 <Link
