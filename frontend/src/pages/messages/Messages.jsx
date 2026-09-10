@@ -1,57 +1,41 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
-
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-
 import { io } from "socket.io-client";
 
 import {
   FiMessageCircle,
   FiSearch,
+  FiChevronRight,
+  FiEdit3,
 } from "react-icons/fi";
 
-import {
-  useSearchParams,
-} from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import Chat from "./Chat";
 
-const API_URL =
-  "http://localhost:8808/api";
-
-const SOCKET_URL =
-  "http://localhost:8808";
+const API_URL = "http://localhost:8808/api";
+const SOCKET_URL = "http://localhost:8808";
 
 const Messages = () => {
-  const [searchParams] =
-    useSearchParams();
+  const [searchParams] = useSearchParams();
 
   // User ID received from UserProfile
-  const userIdFromProfile =
-    searchParams.get("user");
+  const userIdFromProfile = searchParams.get("user");
 
-  const [currentUser, setCurrentUser] =
-    useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const [conversations, setConversations] =
-    useState([]);
+  const [conversations, setConversations] = useState([]);
 
-  const [users, setUsers] =
-    useState([]);
+  const [users, setUsers] = useState([]);
 
   const [selectedConversation, setSelectedConversation] =
     useState(null);
 
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [socket, setSocket] =
-    useState(null);
+  const [socket, setSocket] = useState(null);
 
   // =====================================================
   // GET CURRENT USER
@@ -60,18 +44,15 @@ const Messages = () => {
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response =
-          await axios.get(
-            `${API_URL}/auth/verify-token`,
-            {
-              withCredentials: true,
-            }
-          );
+        const response = await axios.get(
+          `${API_URL}/auth/verify-token`,
+          {
+            withCredentials: true,
+          }
+        );
 
         if (response.data.success) {
-          setCurrentUser(
-            response.data.user
-          );
+          setCurrentUser(response.data.user);
         }
       } catch (error) {
         console.error(
@@ -91,8 +72,7 @@ const Messages = () => {
   useEffect(() => {
     if (!currentUser) return;
 
-    const token =
-      localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
     if (!token) {
       console.warn(
@@ -102,27 +82,21 @@ const Messages = () => {
       return;
     }
 
-    const newSocket = io(
-      SOCKET_URL,
-      {
-        auth: {
-          token,
-        },
-        withCredentials: true,
-      }
-    );
+    const newSocket = io(SOCKET_URL, {
+      auth: {
+        token,
+      },
+      withCredentials: true,
+    });
 
     setSocket(newSocket);
 
-    newSocket.on(
-      "connect",
-      () => {
-        console.log(
-          "Socket connected:",
-          newSocket.id
-        );
-      }
-    );
+    newSocket.on("connect", () => {
+      console.log(
+        "Socket connected:",
+        newSocket.id
+      );
+    });
 
     newSocket.on(
       "connect_error",
@@ -141,58 +115,78 @@ const Messages = () => {
     newSocket.on(
       "newMessage",
       (message) => {
-        setConversations(
-          (prev) => {
-            const conversationId =
-              message.conversation;
+        setConversations((prev) => {
+          const conversationId =
+            message.conversation;
 
-            const existingIndex =
-              prev.findIndex(
-                (conversation) =>
-                  conversation._id?.toString() ===
-                  conversationId?.toString()
-              );
-
-            if (
-              existingIndex === -1
-            ) {
-              return prev;
-            }
-
-            const updated =
-              [...prev];
-
-            const conversation =
-              {
-                ...updated[
-                  existingIndex
-                ],
-                lastMessage:
-                  message,
-                lastMessageText:
-                  message.text,
-                lastMessageAt:
-                  message.createdAt,
-              };
-
-            updated.splice(
-              existingIndex,
-              1
+          const existingIndex =
+            prev.findIndex(
+              (conversation) =>
+                conversation._id?.toString() ===
+                conversationId?.toString()
             );
 
-            return [
-              conversation,
-              ...updated,
-            ];
+          // If conversation doesn't exist yet,
+          // keep existing behaviour.
+          if (existingIndex === -1) {
+            return prev;
           }
-        );
+
+          const updated = [...prev];
+
+          const oldConversation =
+            updated[existingIndex];
+
+          const isCurrentConversation =
+            selectedConversation?._id?.toString() ===
+            conversationId?.toString();
+
+          // Increase unread count only when
+          // this conversation is not currently open.
+          const oldUnreadCount = Number(
+            oldConversation.unreadCount || 0
+          );
+
+          const newUnreadCount =
+            isCurrentConversation
+              ? 0
+              : oldUnreadCount + 1;
+
+          const conversation = {
+            ...oldConversation,
+
+            lastMessage: message,
+
+            lastMessageText:
+              message.text,
+
+            lastMessageAt:
+              message.createdAt,
+
+            unreadCount:
+              newUnreadCount,
+          };
+
+          updated.splice(
+            existingIndex,
+            1
+          );
+
+          return [
+            conversation,
+            ...updated,
+          ];
+        });
       }
     );
 
     return () => {
       newSocket.disconnect();
     };
-  }, [currentUser]);
+  }, [
+    currentUser,
+    selectedConversation,
+  ]);
 
   // =====================================================
   // FETCH CONVERSATIONS
@@ -217,12 +211,23 @@ const Messages = () => {
             }
           );
 
-        if (
-          response.data.success
-        ) {
-          setConversations(
+        if (response.data.success) {
+          const fetchedConversations =
             response.data.conversations ||
-              []
+            [];
+
+          setConversations(
+            fetchedConversations.map(
+              (conversation) => ({
+                ...conversation,
+
+                // If backend sends unreadCount,
+                // use it. Otherwise default to 0.
+                unreadCount: Number(
+                  conversation.unreadCount || 0
+                ),
+              })
+            )
           );
         }
       } catch (error) {
@@ -265,13 +270,11 @@ const Messages = () => {
       return;
     }
 
-    const timer =
-      setTimeout(() => {
-        searchUsers();
-      }, 400);
+    const timer = setTimeout(() => {
+      searchUsers();
+    }, 400);
 
-    return () =>
-      clearTimeout(timer);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const searchUsers =
@@ -285,13 +288,12 @@ const Messages = () => {
                 query:
                   search.trim(),
               },
+
               withCredentials: true,
             }
           );
 
-        if (
-          response.data.success
-        ) {
+        if (response.data.success) {
           const filtered =
             (
               response.data.users ||
@@ -329,9 +331,7 @@ const Messages = () => {
             }
           );
 
-        if (
-          response.data.success
-        ) {
+        if (response.data.success) {
           const conversation =
             response.data.conversation;
 
@@ -343,41 +343,60 @@ const Messages = () => {
             return;
           }
 
-          // Open this exact conversation
+          // =================================================
+          // RESET UNREAD COUNT LOCALLY
+          // =================================================
+
+          const conversationWithReadStatus =
+            {
+              ...conversation,
+
+              unreadCount: 0,
+            };
+
+          // Open exact conversation
           setSelectedConversation(
-            conversation
+            conversationWithReadStatus
           );
 
           // Clear search
           setSearch("");
+
           setUsers([]);
 
-          // Add conversation to list
-          setConversations(
-            (prev) => {
-              const exists =
-                prev.some(
-                  (item) =>
-                    item._id?.toString() ===
-                    conversation._id?.toString()
-                );
+          // =================================================
+          // UPDATE CONVERSATION LIST
+          // =================================================
 
-              if (exists) {
-                return prev.map(
-                  (item) =>
-                    item._id?.toString() ===
-                    conversation._id?.toString()
-                      ? conversation
-                      : item
-                );
-              }
+          setConversations((prev) => {
+            const exists =
+              prev.some(
+                (item) =>
+                  item._id?.toString() ===
+                  conversation._id?.toString()
+              );
 
-              return [
-                conversation,
-                ...prev,
-              ];
+            if (exists) {
+              return prev.map(
+                (item) =>
+                  item._id?.toString() ===
+                  conversation._id?.toString()
+                    ? {
+                        ...conversation,
+                        unreadCount: 0,
+                      }
+                    : item
+              );
             }
-          );
+
+            return [
+              {
+                ...conversation,
+                unreadCount: 0,
+              },
+              ...prev,
+            ];
+          });
         }
       } catch (error) {
         console.error(
@@ -406,21 +425,80 @@ const Messages = () => {
   };
 
   // =====================================================
+  // GET PROFILE IMAGE
+  // =====================================================
+
+  const getProfileImage = (user) => {
+    return (
+      user?.profilePicture ||
+      user?.profilePic ||
+      user?.profileImage ||
+      ""
+    );
+  };
+
+  // =====================================================
+  // GET USER NAME
+  // =====================================================
+
+  const getUserName = (user) => {
+    return (
+      user?.name ||
+      user?.username ||
+      "User"
+    );
+  };
+
+  // =====================================================
+  // GET USER INITIAL
+  // =====================================================
+
+  const getUserInitial = (user) => {
+    return getUserName(user)
+      .charAt(0)
+      .toUpperCase();
+  };
+
+  // =====================================================
   // FORMAT TIME
   // =====================================================
 
-  const formatTime = (
-    date
-  ) => {
+  const formatTime = (date) => {
     if (!date) return "";
 
-    return new Date(
-      date
-    ).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const messageDate =
+      new Date(date);
+
+    if (
+      Number.isNaN(
+        messageDate.getTime()
+      )
+    ) {
+      return "";
+    }
+
+    return messageDate.toLocaleTimeString(
+      [],
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
   };
+
+  // =====================================================
+  // GET TOTAL UNREAD MESSAGES
+  // =====================================================
+
+  const totalUnreadMessages =
+    conversations.reduce(
+      (total, conversation) =>
+        total +
+        Number(
+          conversation.unreadCount || 0
+        ),
+      0
+    );
 
   // =====================================================
   // CHAT VIEW
@@ -452,37 +530,88 @@ const Messages = () => {
   // =====================================================
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900">
 
-      {/* HEADER */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
-      <div className="bg-white border-b px-5 py-4">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
 
-        <div className="max-w-4xl mx-auto">
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
 
-          <div className="flex items-center gap-3">
+          {/* TOP HEADER */}
 
-            <FiMessageCircle
-              size={25}
-              className="text-[#0F4C5C]"
-            />
+          <div className="flex items-center justify-between">
 
-            <h1 className="text-xl font-bold text-gray-900">
-              Messages
-            </h1>
+            <div className="flex items-center gap-3">
+
+              {/* ICON */}
+
+              <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+
+                <FiMessageCircle
+                  size={22}
+                />
+
+                {totalUnreadMessages >
+                  0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-pink-500 px-1 text-[10px] font-bold text-white">
+                    {totalUnreadMessages >
+                    99
+                      ? "99+"
+                      : totalUnreadMessages}
+                  </span>
+                )}
+
+              </div>
+
+              <div>
+
+                <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                  Messages
+                </h1>
+
+                <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+                  Stay connected with your
+                  friends
+                </p>
+
+              </div>
+
+            </div>
+
+            {/* NEW MESSAGE ICON */}
+
+            <button
+              type="button"
+              onClick={() => {
+                const searchInput =
+                  document.getElementById(
+                    "message-search"
+                  );
+
+                searchInput?.focus();
+              }}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+              title="New message"
+            >
+              <FiEdit3 size={18} />
+            </button>
 
           </div>
 
           {/* SEARCH */}
 
-          <div className="relative mt-4">
+          <div className="relative mt-5">
 
             <FiSearch
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
               size={18}
             />
 
             <input
+              id="message-search"
               type="text"
               value={search}
               onChange={(e) =>
@@ -490,221 +619,435 @@ const Messages = () => {
                   e.target.value
                 )
               }
-              placeholder="Search people to message..."
-              className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-100 border border-transparent outline-none focus:border-[#0F4C5C] focus:bg-white"
+              placeholder="Search people..."
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-50"
             />
 
             {/* SEARCH RESULTS */}
 
-            {search.trim() &&
-              users.length > 0 && (
-                <div className="absolute z-20 top-full left-0 right-0 mt-2 bg-white border rounded-xl shadow-lg overflow-hidden">
+            {search.trim() && (
+              <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
 
-                  {users.map(
-                    (user) => (
-                      <button
-                        key={
-                          user._id
-                        }
-                        onClick={() =>
-                          openConversation(
-                            user._id
-                          )
-                        }
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left"
-                      >
+                {users.length > 0 ? (
+                  <div className="max-h-80 overflow-y-auto">
 
-                        <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                    <div className="border-b border-slate-100 px-4 py-2.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        People
+                      </p>
+                    </div>
 
-                          {user.profilePicture ||
-                          user.profilePic ||
-                          user.profileImage ? (
-                            <img
-                              src={
-                                user.profilePicture ||
-                                user.profilePic ||
-                                user.profileImage
-                              }
-                              alt={
-                                user.username
-                              }
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-[#0F4C5C] text-white font-semibold">
-                              {(
-                                user.username ||
-                                user.name ||
-                                "U"
+                    {users.map(
+                      (user) => {
+                        const image =
+                          getProfileImage(
+                            user
+                          );
+
+                        return (
+                          <button
+                            key={
+                              user._id
+                            }
+                            onClick={() =>
+                              openConversation(
+                                user._id
                               )
-                                .charAt(
-                                  0
-                                )
-                                .toUpperCase()}
+                            }
+                            className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-slate-50"
+                          >
+
+                            {/* PROFILE */}
+
+                            <div className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-full bg-blue-100 ring-2 ring-white">
+
+                              {image ? (
+                                <img
+                                  src={
+                                    image
+                                  }
+                                  alt={getUserName(
+                                    user
+                                  )}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-blue-600 font-semibold text-white">
+                                  {getUserInitial(
+                                    user
+                                  )}
+                                </div>
+                              )}
+
                             </div>
-                          )}
 
-                        </div>
+                            {/* USER INFO */}
 
-                        <div>
-                          <p className="font-semibold text-gray-800">
-                            {user.name ||
-                              user.username}
-                          </p>
+                            <div className="min-w-0 flex-1">
 
-                          <p className="text-sm text-gray-500">
-                            @{user.username}
-                          </p>
-                        </div>
+                              <p className="truncate text-sm font-semibold text-slate-800">
+                                {getUserName(
+                                  user
+                                )}
+                              </p>
 
-                      </button>
-                    )
-                  )}
+                              <p className="mt-0.5 truncate text-xs text-slate-500">
+                                @{user.username ||
+                                  "user"}
+                              </p>
 
-                </div>
-              )}
+                            </div>
+
+                            <FiChevronRight
+                              size={17}
+                              className="text-slate-300"
+                            />
+
+                          </button>
+                        );
+                      }
+                    )}
+
+                  </div>
+                ) : (
+                  <div className="px-5 py-8 text-center">
+
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                      <FiSearch
+                        size={20}
+                      />
+                    </div>
+
+                    <p className="text-sm font-medium text-slate-700">
+                      No people found
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-400">
+                      Try searching with another
+                      username
+                    </p>
+
+                  </div>
+                )}
+
+              </div>
+            )}
 
           </div>
 
         </div>
 
-      </div>
+      </header>
 
-      {/* CONVERSATIONS */}
+      {/* =================================================
+          CONVERSATION AREA
+      ================================================= */}
 
-      <div className="max-w-4xl mx-auto bg-white min-h-[calc(100vh-140px)]">
+      <main className="mx-auto max-w-4xl px-0 pb-8 sm:px-6">
 
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <p className="text-gray-500">
-              Loading conversations...
-            </p>
-          </div>
-        ) : conversations.length ===
-          0 ? (
+        <div className="overflow-hidden bg-white sm:mt-5 sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm">
 
-          <div className="flex flex-col items-center justify-center py-24 text-center px-5">
+          {/* CONVERSATION HEADER */}
 
-            <div className="w-20 h-20 rounded-full bg-[#0F4C5C]/10 flex items-center justify-center mb-4">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-5">
 
-              <FiMessageCircle
-                size={35}
-                className="text-[#0F4C5C]"
-              />
+            <div>
+
+              <h2 className="text-sm font-semibold text-slate-800">
+                Recent conversations
+              </h2>
+
+              <p className="mt-0.5 text-xs text-slate-400">
+                {conversations.length}{" "}
+                {conversations.length ===
+                1
+                  ? "conversation"
+                  : "conversations"}
+              </p>
 
             </div>
 
-            <h2 className="text-lg font-semibold text-gray-800">
-              No messages yet
-            </h2>
+            {totalUnreadMessages >
+              0 && (
+              <div className="flex items-center gap-1.5 rounded-full bg-pink-50 px-3 py-1.5">
 
-            <p className="text-sm text-gray-500 mt-1">
-              Search for a user above to
-              start a conversation.
-            </p>
+                <span className="h-1.5 w-1.5 rounded-full bg-pink-500" />
 
-          </div>
+                <span className="text-xs font-semibold text-pink-600">
+                  {totalUnreadMessages >
+                  99
+                    ? "99+"
+                    : totalUnreadMessages}{" "}
+                  unread
+                </span>
 
-        ) : (
-
-          <div>
-
-            {conversations.map(
-              (conversation) => {
-
-                const otherUser =
-                  getOtherUser(
-                    conversation
-                  );
-
-                if (!otherUser) {
-                  return null;
-                }
-
-                return (
-                  <button
-                    key={
-                      conversation._id
-                    }
-                    onClick={() =>
-                      setSelectedConversation(
-                        conversation
-                      )
-                    }
-                    className="w-full flex items-center gap-4 px-5 py-4 border-b hover:bg-gray-50 text-left transition"
-                  >
-
-                    {/* PROFILE */}
-
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-
-                      {otherUser.profilePicture ||
-                      otherUser.profilePic ||
-                      otherUser.profileImage ? (
-                        <img
-                          src={
-                            otherUser.profilePicture ||
-                            otherUser.profilePic ||
-                            otherUser.profileImage
-                          }
-                          alt={
-                            otherUser.username
-                          }
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-[#0F4C5C] text-white text-lg font-semibold">
-                          {(
-                            otherUser.username ||
-                            otherUser.name ||
-                            "U"
-                          )
-                            .charAt(
-                              0
-                            )
-                            .toUpperCase()}
-                        </div>
-                      )}
-
-                    </div>
-
-                    {/* INFO */}
-
-                    <div className="flex-1 min-w-0">
-
-                      <div className="flex items-center justify-between">
-
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {otherUser.name ||
-                            otherUser.username}
-                        </h3>
-
-                        <span className="text-xs text-gray-400 ml-2">
-                          {formatTime(
-                            conversation.lastMessageAt
-                          )}
-                        </span>
-
-                      </div>
-
-                      <p className="text-sm text-gray-500 truncate mt-1">
-
-                        {conversation.lastMessageText ||
-                          "Start a conversation"}
-
-                      </p>
-
-                    </div>
-
-                  </button>
-                );
-              }
+              </div>
             )}
 
           </div>
-        )}
 
-      </div>
+          {/* =================================================
+              LOADING
+          ================================================= */}
+
+          {loading ? (
+            <div className="px-4 py-6">
+
+              {[1, 2, 3, 4].map(
+                (item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-4 border-b border-slate-100 px-1 py-4 last:border-b-0"
+                  >
+
+                    <div className="h-14 w-14 flex-shrink-0 animate-pulse rounded-full bg-slate-200" />
+
+                    <div className="min-w-0 flex-1">
+
+                      <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
+
+                      <div className="mt-2 h-3 w-52 max-w-full animate-pulse rounded bg-slate-100" />
+
+                    </div>
+
+                  </div>
+                )
+              )}
+
+            </div>
+          ) : conversations.length ===
+            0 ? (
+
+            /* =================================================
+                EMPTY STATE
+            ================================================= */
+
+            <div className="flex min-h-[55vh] flex-col items-center justify-center px-5 py-20 text-center">
+
+              <div className="relative mb-5">
+
+                <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 text-blue-600">
+
+                  <FiMessageCircle
+                    size={34}
+                    strokeWidth={1.7}
+                  />
+
+                </div>
+
+                <div className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-4 border-white bg-pink-500 text-white">
+                  <FiEdit3 size={12} />
+                </div>
+
+              </div>
+
+              <h2 className="text-lg font-bold text-slate-800">
+                No messages yet
+              </h2>
+
+              <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+                Start a conversation with
+                someone from Vlogify. Search
+                their name above and send your
+                first message.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const searchInput =
+                    document.getElementById(
+                      "message-search"
+                    );
+
+                  searchInput?.focus();
+                }}
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-[0.98]"
+              >
+                <FiSearch
+                  size={16}
+                />
+                Find people
+              </button>
+
+            </div>
+
+          ) : (
+
+            /* =================================================
+                CONVERSATIONS
+            ================================================= */
+
+            <div>
+
+              {conversations.map(
+                (conversation) => {
+                  const otherUser =
+                    getOtherUser(
+                      conversation
+                    );
+
+                  if (!otherUser) {
+                    return null;
+                  }
+
+                  const image =
+                    getProfileImage(
+                      otherUser
+                    );
+
+                  const unreadCount =
+                    Number(
+                      conversation.unreadCount ||
+                        0
+                    );
+
+                  const hasUnread =
+                    unreadCount > 0;
+
+                  return (
+                    <button
+                      key={
+                        conversation._id
+                      }
+                      onClick={() =>
+                        openConversation(
+                          otherUser._id
+                        )
+                      }
+                      className={`group flex w-full items-center gap-3 border-b border-slate-100 px-4 py-4 text-left transition last:border-b-0 sm:gap-4 sm:px-5 ${
+                        hasUnread
+                          ? "bg-blue-50/40 hover:bg-blue-50"
+                          : "bg-white hover:bg-slate-50"
+                      }`}
+                    >
+
+                      {/* =================================================
+                          PROFILE IMAGE
+                      ================================================= */}
+
+                      <div className="relative flex-shrink-0">
+
+                        <div
+                          className={`h-14 w-14 overflow-hidden rounded-full bg-slate-100 ${
+                            hasUnread
+                              ? "ring-2 ring-blue-100"
+                              : "ring-1 ring-slate-100"
+                          }`}
+                        >
+
+                          {image ? (
+                            <img
+                              src={
+                                image
+                              }
+                              alt={getUserName(
+                                otherUser
+                              )}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-blue-600 text-lg font-bold text-white">
+                              {getUserInitial(
+                                otherUser
+                              )}
+                            </div>
+                          )}
+
+                        </div>
+
+                        {/* NEW MESSAGE DOT */}
+
+                        {hasUnread && (
+                          <span className="absolute -right-0.5 bottom-0.5 h-4 w-4 rounded-full border-[3px] border-white bg-pink-500" />
+                        )}
+
+                      </div>
+
+                      {/* =================================================
+                          MESSAGE INFO
+                      ================================================= */}
+
+                      <div className="min-w-0 flex-1">
+
+                        <div className="flex items-center justify-between gap-3">
+
+                          <h3
+                            className={`truncate text-sm sm:text-[15px] ${
+                              hasUnread
+                                ? "font-bold text-slate-900"
+                                : "font-semibold text-slate-800"
+                            }`}
+                          >
+                            {getUserName(
+                              otherUser
+                            )}
+                          </h3>
+
+                          <span
+                            className={`flex-shrink-0 text-[11px] ${
+                              hasUnread
+                                ? "font-semibold text-blue-600"
+                                : "text-slate-400"
+                            }`}
+                          >
+                            {formatTime(
+                              conversation.lastMessageAt
+                            )}
+                          </span>
+
+                        </div>
+
+                        <div className="mt-1.5 flex items-center gap-2">
+
+                          <p
+                            className={`min-w-0 flex-1 truncate text-sm ${
+                              hasUnread
+                                ? "font-medium text-slate-700"
+                                : "text-slate-500"
+                            }`}
+                          >
+                            {conversation.lastMessageText ||
+                              "Start a conversation"}
+                          </p>
+
+                          {/* UNREAD COUNT */}
+
+                          {hasUnread && (
+                            <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-pink-500 px-1.5 text-[10px] font-bold text-white shadow-sm">
+                              {unreadCount >
+                              99
+                                ? "99+"
+                                : unreadCount}
+                            </span>
+                          )}
+
+                        </div>
+
+                      </div>
+
+                      {/* ARROW */}
+
+                      <FiChevronRight
+                        size={18}
+                        className={`flex-shrink-0 transition ${
+                          hasUnread
+                            ? "text-blue-400"
+                            : "text-slate-300 group-hover:translate-x-0.5 group-hover:text-slate-400"
+                        }`}
+                      />
+
+                    </button>
+                  );
+                }
+              )}
+
+            </div>
+          )}
+
+        </div>
+
+      </main>
 
     </div>
   );

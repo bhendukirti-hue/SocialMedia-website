@@ -11,7 +11,6 @@ import {
   FiCheck,
   FiLoader,
   FiUploadCloud,
-  FiUser,
   FiSmile,
 } from "react-icons/fi";
 
@@ -237,9 +236,7 @@ const CreatePost = () => {
     const isVideo = allowedVideoTypes.includes(file.type);
 
     if (!isImage && !isVideo) {
-      setError(
-        "Please select a valid image or video."
-      );
+      setError("Please select a valid image or video.");
       return;
     }
 
@@ -393,14 +390,11 @@ const CreatePost = () => {
 
   if (loadingUser) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-        <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#162A46]" />
-
-          <p className="mt-4 text-sm font-medium text-gray-500">
-            Loading...
-          </p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <FiLoader
+          size={28}
+          className="animate-spin text-[#162A46]"
+        />
       </div>
     );
   }
@@ -410,58 +404,50 @@ const CreatePost = () => {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#172033]">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
 
-      {/* =====================================================
-          TOP HEADER
-      ====================================================== */}
+      {/* ==========================================
+          HEADER
+      ========================================== */}
 
-      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
 
-        <div className="mx-auto flex h-[70px] w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-
-          {/* BACK */}
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
 
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#162A46] shadow-sm transition hover:bg-gray-50 active:scale-95"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-700 transition hover:bg-gray-100"
           >
-            <FiArrowLeft size={22} />
+            <FiArrowLeft size={20} />
           </button>
 
-          {/* TITLE */}
-
-          <h1 className="text-xl font-bold text-[#162A46] sm:text-2xl">
-            Create new post
+          <h1 className="text-lg font-semibold text-gray-900">
+            Create Post
           </h1>
-
-          {/* SHARE */}
 
           <button
             type="submit"
             form="create-post-form"
             disabled={uploading || !selectedFile}
-            className="hidden rounded-xl bg-[#162A46] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#203B60] disabled:cursor-not-allowed disabled:opacity-40 sm:block"
+            className="hidden rounded-lg bg-[#162A46] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#203B60] disabled:cursor-not-allowed disabled:opacity-40 sm:block"
           >
             {uploading ? "Sharing..." : "Share"}
           </button>
 
-          {/* MOBILE CHECK */}
-
           <button
             type="submit"
             form="create-post-form"
             disabled={uploading || !selectedFile}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#162A46] text-white shadow-sm transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#162A46] text-white disabled:cursor-not-allowed disabled:opacity-40 sm:hidden"
           >
             {uploading ? (
               <FiLoader
-                size={20}
+                size={18}
                 className="animate-spin"
               />
             ) : (
-              <FiCheck size={21} />
+              <FiCheck size={19} />
             )}
           </button>
 
@@ -469,272 +455,222 @@ const CreatePost = () => {
 
       </header>
 
-      {/* =====================================================
+      {/* ==========================================
           MAIN
-      ====================================================== */}
+      ========================================== */}
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 pb-12 sm:px-6 sm:py-8 lg:px-8">
+      <main className="mx-auto max-w-5xl px-4 py-6">
 
-        {/* =================================================
-            ERROR
-        ================================================== */}
+        {/* ==========================================
+            MESSAGES
+        ========================================== */}
 
         {error && (
-          <div className="mx-auto mb-5 max-w-5xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-medium text-red-600">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-600">
             {error}
           </div>
         )}
 
-        {/* =================================================
-            SUCCESS
-        ================================================== */}
-
         {success && (
-          <div className="mx-auto mb-5 max-w-5xl rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-center text-sm font-medium text-green-600">
+          <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm text-green-600">
             {success}
           </div>
         )}
 
-        {/* =================================================
-            CREATE POST CARD
-        ================================================== */}
+        {/* ==========================================
+            FORM
+        ========================================== */}
 
         <form
           id="create-post-form"
           onSubmit={handleCreatePost}
-          className="mx-auto overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
         >
 
-          <div className="grid min-h-[650px] grid-cols-1 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
 
-            {/* =================================================
-                LEFT — MEDIA
-            ================================================== */}
+            {/* ==========================================
+                MEDIA SECTION
+            ========================================== */}
 
             <div className="border-b border-gray-200 lg:border-b-0 lg:border-r">
 
-              <div className="flex h-full min-h-[450px] flex-col">
+              <div className="border-b border-gray-100 px-5 py-4">
 
-                {/* MEDIA HEADER */}
+                <h2 className="text-sm font-semibold text-gray-900">
+                  Photo or video
+                </h2>
 
-                <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6">
+                <p className="mt-1 text-xs text-gray-400">
+                  Upload a photo or video to share
+                </p>
 
-                  <div>
-                    <h2 className="text-base font-bold text-[#172033]">
-                      Add photo or video
-                    </h2>
+              </div>
 
-                    <p className="mt-1 text-xs text-gray-400">
-                      Share your moment with Vlogify
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                className="flex min-h-[420px] items-center justify-center bg-gray-50 p-5"
+              >
+
+                {!selectedFile ? (
+                  <button
+                    type="button"
+                    onClick={openFileSelector}
+                    className="flex min-h-[350px] w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-white px-5 text-center transition hover:border-[#162A46] hover:bg-gray-50"
+                  >
+
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-[#162A46]">
+                      <FiUploadCloud size={27} />
+                    </div>
+
+                    <h3 className="text-base font-semibold text-gray-800">
+                      Upload media
+                    </h3>
+
+                    <p className="mt-2 max-w-xs text-sm text-gray-400">
+                      Drag and drop your photo or video here,
+                      or select a file from your device.
                     </p>
-                  </div>
 
-                  {selectedFile && (
-                    <button
-                      type="button"
-                      onClick={removeMedia}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-red-50 hover:text-red-500"
-                    >
-                      <FiX size={18} />
-                    </button>
-                  )}
+                    <span className="mt-5 rounded-lg bg-[#162A46] px-5 py-2.5 text-sm font-medium text-white">
+                      Select file
+                    </span>
 
-                </div>
+                    <div className="mt-5 flex items-center gap-4 text-xs text-gray-400">
 
-                {/* =================================================
-                    MEDIA PREVIEW
-                ================================================== */}
+                      <span className="flex items-center gap-1.5">
+                        <FiImage size={14} />
+                        Photos
+                      </span>
 
-                <div
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  className="relative flex flex-1 items-center justify-center bg-[#F4F6F8] p-4 sm:p-8"
-                >
+                      <span className="h-1 w-1 rounded-full bg-gray-300" />
 
-                  {!selectedFile ? (
-                    <div className="w-full max-w-xl">
+                      <span className="flex items-center gap-1.5">
+                        <FiVideo size={14} />
+                        Videos
+                      </span>
+
+                    </div>
+
+                  </button>
+                ) : (
+                  <div className="relative flex h-full w-full items-center justify-center">
+
+                    <div className="relative w-full overflow-hidden rounded-xl bg-black">
+
+                      {mediaType === "image" && (
+                        <img
+                          src={previewUrl}
+                          alt="Post preview"
+                          className="max-h-[500px] w-full object-contain"
+                        />
+                      )}
+
+                      {mediaType === "video" && (
+                        <video
+                          src={previewUrl}
+                          controls
+                          playsInline
+                          className="max-h-[500px] w-full object-contain"
+                        />
+                      )}
+
+                      <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs text-white">
+                        {mediaType === "video" ? (
+                          <>
+                            <FiVideo size={13} />
+                            Video
+                          </>
+                        ) : (
+                          <>
+                            <FiImage size={13} />
+                            Photo
+                          </>
+                        )}
+                      </div>
 
                       <button
                         type="button"
-                        onClick={openFileSelector}
-                        className="group flex min-h-[430px] w-full flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-300 bg-white px-6 text-center transition hover:border-[#162A46] hover:bg-gray-50"
+                        onClick={removeMedia}
+                        className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-red-500"
                       >
-
-                        {/* ICON */}
-
-                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#EEF2F7] text-[#162A46] transition group-hover:scale-105">
-
-                          <FiUploadCloud size={36} />
-
-                        </div>
-
-                        <h3 className="text-xl font-bold text-[#172033]">
-                          Drag photos and videos here
-                        </h3>
-
-                        <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                          Or choose a photo or video from
-                          your device to create a new post.
-                        </p>
-
-                        <span className="mt-6 inline-flex rounded-xl bg-[#162A46] px-6 py-3 text-sm font-semibold text-white shadow-sm transition group-hover:bg-[#203B60]">
-                          Select from computer
-                        </span>
-
-                        <div className="mt-6 flex items-center gap-5 text-xs text-gray-400">
-
-                          <span className="flex items-center gap-1.5">
-                            <FiImage size={15} />
-                            Images
-                          </span>
-
-                          <span className="h-1 w-1 rounded-full bg-gray-300" />
-
-                          <span className="flex items-center gap-1.5">
-                            <FiVideo size={15} />
-                            Videos
-                          </span>
-
-                        </div>
-
+                        <FiX size={17} />
                       </button>
 
                     </div>
-                  ) : (
-                    <div className="relative flex h-full w-full items-center justify-center">
-
-                      <div className="relative h-full max-h-[620px] w-full overflow-hidden rounded-2xl bg-black shadow-xl">
-
-                        {/* IMAGE */}
-
-                        {mediaType === "image" && (
-                          <img
-                            src={previewUrl}
-                            alt="Post preview"
-                            className="h-full max-h-[620px] w-full object-contain"
-                          />
-                        )}
-
-                        {/* VIDEO */}
-
-                        {mediaType === "video" && (
-                          <video
-                            src={previewUrl}
-                            controls
-                            playsInline
-                            className="h-full max-h-[620px] w-full object-contain"
-                          />
-                        )}
-
-                        {/* MEDIA TYPE */}
-
-                        <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-xs font-medium text-white backdrop-blur">
-
-                          {mediaType === "video" ? (
-                            <>
-                              <FiVideo size={14} />
-                              Video
-                            </>
-                          ) : (
-                            <>
-                              <FiImage size={14} />
-                              Photo
-                            </>
-                          )}
-
-                        </div>
-
-                        {/* REMOVE */}
-
-                        <button
-                          type="button"
-                          onClick={removeMedia}
-                          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-red-500"
-                        >
-                          <FiX size={20} />
-                        </button>
-
-                      </div>
-
-                    </div>
-                  )}
-
-                  {/* FILE INPUT */}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,video/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-
-                </div>
-
-                {/* MEDIA INFO */}
-
-                {selectedFile && (
-                  <div className="flex items-center justify-between border-t border-gray-100 bg-white px-5 py-3 sm:px-6">
-
-                    <div className="flex min-w-0 items-center gap-3">
-
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EEF2F7] text-[#162A46]">
-
-                        {mediaType === "video" ? (
-                          <FiVideo size={18} />
-                        ) : (
-                          <FiImage size={18} />
-                        )}
-
-                      </div>
-
-                      <div className="min-w-0">
-
-                        <p className="truncate text-sm font-semibold text-gray-700">
-                          {selectedFile.name}
-                        </p>
-
-                        <p className="text-xs text-gray-400">
-                          {formatFileSize(
-                            selectedFile.size
-                          )}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={openFileSelector}
-                      className="shrink-0 text-xs font-semibold text-[#162A46] hover:underline"
-                    >
-                      Change
-                    </button>
 
                   </div>
                 )}
 
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
               </div>
+
+              {/* FILE INFO */}
+
+              {selectedFile && (
+                <div className="flex items-center justify-between border-t border-gray-100 px-5 py-3">
+
+                  <div className="flex min-w-0 items-center gap-3">
+
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-[#162A46]">
+                      {mediaType === "video" ? (
+                        <FiVideo size={16} />
+                      ) : (
+                        <FiImage size={16} />
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+
+                      <p className="truncate text-xs font-medium text-gray-700">
+                        {selectedFile.name}
+                      </p>
+
+                      <p className="text-[11px] text-gray-400">
+                        {formatFileSize(selectedFile.size)}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={openFileSelector}
+                    className="text-xs font-medium text-[#162A46] hover:underline"
+                  >
+                    Change
+                  </button>
+
+                </div>
+              )}
 
             </div>
 
-            {/* =================================================
-                RIGHT — POST DETAILS
-            ================================================== */}
+            {/* ==========================================
+                DETAILS SECTION
+            ========================================== */}
 
-            <div className="flex flex-col bg-white">
+            <div>
 
               {/* USER */}
 
-              <div className="border-b border-gray-100 px-5 py-5 sm:px-7">
+              <div className="border-b border-gray-100 px-5 py-4">
 
                 <div className="flex items-center gap-3">
 
                   <img
                     src={profileImage}
                     alt="Profile"
-                    className="h-11 w-11 rounded-full object-cover ring-2 ring-gray-100"
+                    className="h-10 w-10 rounded-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src =
                         defaultProfilePicture;
@@ -743,13 +679,12 @@ const CreatePost = () => {
 
                   <div className="min-w-0">
 
-                    <p className="truncate text-sm font-bold text-[#172033]">
-                      {currentUser?.username ||
-                        "Your account"}
+                    <p className="truncate text-sm font-semibold text-gray-800">
+                      {currentUser?.username || "Your account"}
                     </p>
 
                     <p className="text-xs text-gray-400">
-                      Create a new post
+                      New post
                     </p>
 
                   </div>
@@ -760,13 +695,13 @@ const CreatePost = () => {
 
               {/* CAPTION */}
 
-              <div className="border-b border-gray-100 px-5 py-5 sm:px-7">
+              <div className="border-b border-gray-100 px-5 py-5">
 
-                <div className="mb-3 flex items-center justify-between">
+                <div className="mb-2 flex items-center justify-between">
 
                   <label
                     htmlFor="caption"
-                    className="text-sm font-bold text-[#172033]"
+                    className="text-sm font-semibold text-gray-800"
                   >
                     Caption
                   </label>
@@ -786,14 +721,14 @@ const CreatePost = () => {
                     onChange={(e) =>
                       setCaption(e.target.value)
                     }
-                    placeholder="Write a caption..."
-                    rows={7}
-                    className="w-full resize-none rounded-2xl border border-gray-200 bg-[#FAFBFC] px-4 py-4 pr-11 text-sm leading-6 text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#9AA8BA] focus:bg-white focus:ring-4 focus:ring-[#162A46]/5"
+                    placeholder="Write something about your post..."
+                    rows={6}
+                    className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-10 text-sm leading-6 text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:bg-white"
                   />
 
                   <FiSmile
-                    size={20}
-                    className="absolute right-4 top-4 text-gray-300"
+                    size={18}
+                    className="absolute right-3 top-3 text-gray-300"
                   />
 
                 </div>
@@ -802,19 +737,19 @@ const CreatePost = () => {
 
               {/* LOCATION */}
 
-              <div className="border-b border-gray-100 px-5 py-5 sm:px-7">
+              <div className="border-b border-gray-100 px-5 py-5">
 
                 <label
                   htmlFor="location"
-                  className="mb-3 block text-sm font-bold text-[#172033]"
+                  className="mb-2 block text-sm font-semibold text-gray-800"
                 >
                   Location
                 </label>
 
-                <div className="flex items-center rounded-2xl border border-gray-200 bg-[#FAFBFC] px-4 transition focus-within:border-[#9AA8BA] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#162A46]/5">
+                <div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 px-3">
 
                   <FiMapPin
-                    size={19}
+                    size={18}
                     className="shrink-0 text-gray-400"
                   />
 
@@ -825,68 +760,35 @@ const CreatePost = () => {
                     onChange={(e) =>
                       setLocation(e.target.value)
                     }
-                    placeholder="Add location"
-                    className="w-full bg-transparent px-3 py-3.5 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                    placeholder="Add a location"
+                    className="w-full bg-transparent px-3 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400"
                   />
 
                 </div>
 
               </div>
 
-              {/* POST TIPS */}
+              {/* SHARE */}
 
-              <div className="flex-1 px-5 py-5 sm:px-7">
-
-                <div className="rounded-2xl bg-[#F6F8FA] p-5">
-
-                  <h3 className="text-sm font-bold text-[#172033]">
-                    Create a great post ✨
-                  </h3>
-
-                  <ul className="mt-3 space-y-2 text-xs leading-5 text-gray-500">
-
-                    <li className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#162A46]" />
-                      Use a clear and attractive photo or video.
-                    </li>
-
-                    <li className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#162A46]" />
-                      Add a caption to tell your story.
-                    </li>
-
-                    <li className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#162A46]" />
-                      Add a location when it is relevant.
-                    </li>
-
-                  </ul>
-
-                </div>
-
-              </div>
-
-              {/* DESKTOP SHARE */}
-
-              <div className="border-t border-gray-100 p-5 sm:p-7">
+              <div className="p-5">
 
                 <button
                   type="submit"
                   disabled={uploading || !selectedFile}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#162A46] px-6 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[#203B60] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#162A46] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#203B60] disabled:cursor-not-allowed disabled:opacity-40"
                 >
 
                   {uploading ? (
                     <>
                       <FiLoader
-                        size={19}
+                        size={18}
                         className="animate-spin"
                       />
-                      Sharing your post...
+                      Sharing...
                     </>
                   ) : (
                     <>
-                      <FiUploadCloud size={19} />
+                      <FiUploadCloud size={18} />
                       Share post
                     </>
                   )}
@@ -894,8 +796,8 @@ const CreatePost = () => {
                 </button>
 
                 {!selectedFile && (
-                  <p className="mt-3 text-center text-xs text-gray-400">
-                    Select a photo or video to continue
+                  <p className="mt-2 text-center text-xs text-gray-400">
+                    Select a photo or video first
                   </p>
                 )}
 

@@ -34,6 +34,8 @@ const Reels = () => {
   const [commentOpen, setCommentOpen] = useState(false);
   const [selectedReel, setSelectedReel] = useState(null);
   const [commentText, setCommentText] = useState("");
+  const [comments, setComments] = useState([]);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
 
   const videoRefs = useRef({});
 
@@ -255,6 +257,8 @@ const Reels = () => {
 
   const openComments = (reel) => {
     setSelectedReel(reel);
+    setComments(reel.comments || []);
+    setCommentText("");
     setCommentOpen(true);
   };
 
@@ -266,6 +270,8 @@ const Reels = () => {
     setCommentOpen(false);
     setSelectedReel(null);
     setCommentText("");
+    setComments([]);
+    setCommentSubmitting(false);
   };
 
   // ==========================================
@@ -273,26 +279,19 @@ const Reels = () => {
   // ==========================================
 
   const handleComment = async () => {
-    if (!commentText.trim() || !selectedReel) {
+    const text = commentText.trim();
+
+    if (!text || !selectedReel || commentSubmitting) {
       return;
     }
 
-    /*
-      IMPORTANT:
-
-      This frontend expects this backend endpoint:
-
-      POST /api/posts/:postId/comment
-
-      If your backend comment route has a different
-      URL, change the URL below.
-    */
-
     try {
+      setCommentSubmitting(true);
+
       const response = await axios.post(
         `${API_URL}/posts/${selectedReel._id}/comment`,
         {
-          text: commentText.trim(),
+          text,
         },
         {
           withCredentials: true,
@@ -302,22 +301,69 @@ const Reels = () => {
       console.log("COMMENT:", response.data);
 
       if (response.data?.success) {
+        const returnedComment =
+          response.data.comment ||
+          response.data.data?.comment ||
+          response.data.data ||
+          null;
+
+        const newComment =
+          returnedComment || {
+            _id: `local-${Date.now()}`,
+            text,
+            user: {
+              username: "You",
+              profilePicture:
+                defaultProfilePicture,
+            },
+          };
+
+        setComments((current) => [
+          ...current,
+          newComment,
+        ]);
+
+        setSelectedReel((current) =>
+          current
+            ? {
+                ...current,
+                comments: [
+                  ...(current.comments || []),
+                  newComment,
+                ],
+              }
+            : current
+        );
+
+        setReels((current) =>
+          current.map((reel) => {
+            if (reel._id !== selectedReel._id) {
+              return reel;
+            }
+
+            const updatedComments = [
+              ...(reel.comments || []),
+              newComment,
+            ];
+
+            return {
+              ...reel,
+              comments: updatedComments,
+              commentCount:
+                updatedComments.length,
+            };
+          })
+        );
+
         setCommentText("");
-
-        alert("Comment added!");
-
-        closeComments();
       }
     } catch (err) {
       console.error(
         "Comment error:",
         err.response?.data || err.message
       );
-
-      alert(
-        err.response?.data?.message ||
-          "Comment feature is not connected yet."
-      );
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
@@ -376,9 +422,9 @@ const Reels = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black">
+      <div className="flex h-screen items-center justify-center bg-[#07111F]">
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-white/80/20 border-t-white" />
 
           <p className="mt-4 text-sm font-medium text-white">
             Loading Reels...
@@ -394,7 +440,7 @@ const Reels = () => {
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black px-5">
+      <div className="flex h-screen items-center justify-center bg-[#07111F] px-5">
         <div className="text-center">
           <p className="text-sm text-red-400">
             {error}
@@ -403,7 +449,7 @@ const Reels = () => {
           <button
             type="button"
             onClick={fetchReels}
-            className="mt-5 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black"
+            className="mt-5 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[#0F2747] shadow-lg transition hover:bg-slate-100"
           >
             Try Again
           </button>
@@ -411,7 +457,7 @@ const Reels = () => {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="mt-3 block w-full text-sm text-white/70"
+            className="mt-3 block w-full text-sm text-white/75"
           >
             Go Home
           </button>
@@ -426,7 +472,7 @@ const Reels = () => {
 
   if (reels.length === 0) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black px-5">
+      <div className="flex h-screen items-center justify-center bg-[#07111F] px-5">
         <div className="text-center">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/10">
             <FiVideoIcon />
@@ -436,7 +482,7 @@ const Reels = () => {
             No Reels Yet
           </h2>
 
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-2 text-sm text-white/65">
             Upload a video post to see it here.
           </p>
 
@@ -453,7 +499,7 @@ const Reels = () => {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="mt-4 block w-full text-sm text-white/70"
+            className="mt-4 block w-full text-sm text-white/75"
           >
             Go Home
           </button>
@@ -467,29 +513,29 @@ const Reels = () => {
   // ==========================================
 
   return (
-    <div className="fixed inset-0 bg-black">
+    <div className="fixed inset-0 bg-[#07111F]">
       {/* ==========================================
           TOP HEADER
       ========================================== */}
 
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-40">
-        <div className="mx-auto flex max-w-[700px] items-center justify-between px-5 py-5">
+        <div className="mx-auto flex max-w-[760px] items-center justify-between px-5 py-5">
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+            className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#07111F]/40 text-white backdrop-blur transition hover:bg-[#07111F]/60"
           >
             <FiArrowLeft size={23} />
           </button>
 
-          <h1 className="text-lg font-bold text-white">
+          <h1 className="text-base font-semibold tracking-wide text-white">
             Reels
           </h1>
 
           <button
             type="button"
             onClick={() => setMuted(!muted)}
-            className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+            className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#07111F]/40 text-white backdrop-blur transition hover:bg-[#07111F]/60"
           >
             {muted ? (
               <FiVolumeX size={21} />
@@ -533,7 +579,7 @@ const Reels = () => {
           return (
             <section
               key={reel._id}
-              className="relative h-screen w-full snap-start snap-always bg-black"
+              className="relative h-screen w-full snap-start snap-always bg-[#07111F]"
             >
               {/* ======================================
                   VIDEO
@@ -583,7 +629,7 @@ const Reels = () => {
                       reel.user?.username ||
                       "User"
                     }
-                    className="h-11 w-11 rounded-full border-2 border-white object-cover"
+                    className="h-11 w-11 rounded-full border-2 border-white/80 object-cover"
                     onError={(e) => {
                       e.currentTarget.src =
                         defaultProfilePicture;
@@ -596,7 +642,7 @@ const Reels = () => {
                         "Unknown User"}
                     </p>
 
-                    <p className="text-xs text-white/60">
+                    <p className="text-xs text-white/65">
                       {formatDate(
                         reel.createdAt
                       )}
@@ -617,7 +663,7 @@ const Reels = () => {
                   ACTION BUTTONS
               ====================================== */}
 
-              <div className="absolute bottom-8 right-4 z-30 flex flex-col items-center gap-5">
+              <div className="absolute bottom-8 right-4 z-30 flex flex-col items-center gap-4">
                 {/* LIKE */}
 
                 <div className="flex flex-col items-center">
@@ -626,13 +672,13 @@ const Reels = () => {
                     onClick={() =>
                       handleLike(reel._id)
                     }
-                    className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition active:scale-90"
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-[#07111F]/30 text-white backdrop-blur transition active:scale-90"
                   >
                     <FiHeart
                       size={29}
                       className={
                         isLiked
-                          ? "text-red-500"
+                          ? "text-rose-400"
                           : "text-white"
                       }
                       fill={
@@ -656,7 +702,7 @@ const Reels = () => {
                     onClick={() =>
                       openComments(reel)
                     }
-                    className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition active:scale-90"
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-[#07111F]/30 text-white backdrop-blur transition active:scale-90"
                   >
                     <FiMessageCircle
                       size={28}
@@ -664,7 +710,9 @@ const Reels = () => {
                   </button>
 
                   <span className="mt-1 text-xs font-semibold text-white">
-                    Comment
+                    {reel.commentCount ??
+                      reel.comments?.length ??
+                      0}
                   </span>
                 </div>
 
@@ -676,7 +724,7 @@ const Reels = () => {
                     onClick={() =>
                       handleShare(reel)
                     }
-                    className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition active:scale-90"
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-[#07111F]/30 text-white backdrop-blur transition active:scale-90"
                   >
                     <FiSend size={27} />
                   </button>
@@ -694,7 +742,7 @@ const Reels = () => {
                     onClick={() =>
                       handleSave(reel._id)
                     }
-                    className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur transition active:scale-90"
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-[#07111F]/30 text-white backdrop-blur transition active:scale-90"
                   >
                     <FiBookmark
                       size={27}
@@ -717,7 +765,7 @@ const Reels = () => {
 
                 <button
                   type="button"
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[#07111F]/30 text-white backdrop-blur"
                 >
                   <FiMoreVertical size={25} />
                 </button>
@@ -733,68 +781,163 @@ const Reels = () => {
 
       {commentOpen && selectedReel && (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-[#020817]/75 p-0 backdrop-blur-md sm:items-center sm:p-5"
           onClick={closeComments}
         >
           <div
-            className="w-full max-w-[650px] rounded-t-3xl bg-white"
+            className="flex w-full max-w-[620px] max-h-[88vh] flex-col overflow-hidden rounded-t-[28px] bg-white shadow-[0_24px_80px_rgba(2,8,23,0.35)] sm:rounded-[28px]"
             onClick={(e) =>
               e.stopPropagation()
             }
           >
             {/* HEADER */}
-
-            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-              <h2 className="text-lg font-bold text-[#172033]">
-                Comments
-              </h2>
+            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+              <div>
+                <h2 className="text-lg font-bold tracking-tight text-[#0F2747]">
+                  Comments
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {comments.length}{" "}
+                  {comments.length === 1
+                    ? "comment"
+                    : "comments"}
+                </p>
+              </div>
 
               <button
                 type="button"
                 onClick={closeComments}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-700"
+                aria-label="Close comments"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 hover:text-[#0F2747] active:scale-95"
               >
                 ×
               </button>
             </div>
 
-            {/* COMMENT AREA */}
+            {/* COMMENTS */}
+            <div className="min-h-[220px] flex-1 overflow-y-auto px-5 py-5">
+              {comments.length > 0 ? (
+                <div className="space-y-5">
+                  {comments.map((comment, index) => {
+                    const commentUser =
+                      comment.user ||
+                      comment.author ||
+                      {};
 
-            <div className="min-h-[180px] px-5 py-6">
-              <p className="text-center text-sm text-gray-400">
-                Comments will appear here.
-              </p>
+                    const commentImage =
+                      commentUser.profilePicture ||
+                      commentUser.profilePic ||
+                      commentUser.profileImage ||
+                      defaultProfilePicture;
+
+                    return (
+                      <div
+                        key={
+                          comment._id ||
+                          `comment-${index}`
+                        }
+                        className="flex gap-3"
+                      >
+                        <img
+                          src={commentImage}
+                          alt={
+                            commentUser.username ||
+                            "User"
+                          }
+                          className="h-10 w-10 flex-shrink-0 rounded-full border border-slate-200 object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              defaultProfilePicture;
+                          }}
+                        />
+
+                        <div className="min-w-0 flex-1">
+                          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                            <p className="text-sm font-semibold text-[#0F2747]">
+                              {commentUser.username ||
+                                "You"}
+                            </p>
+
+                            <p className="mt-1 break-words text-sm leading-5 text-slate-600">
+                              {comment.text ||
+                                comment.comment ||
+                                ""}
+                            </p>
+                          </div>
+
+                          {comment.createdAt && (
+                            <p className="mt-1 px-2 text-[11px] text-slate-400">
+                              {formatDate(
+                                comment.createdAt
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#2563EB]">
+                    <FiMessageCircle size={28} />
+                  </div>
+
+                  <h3 className="mt-4 text-base font-semibold text-[#0F2747]">
+                    No comments yet
+                  </h3>
+
+                  <p className="mt-1 max-w-xs text-sm text-slate-500">
+                    Be the first to share your thoughts on this reel.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* INPUT */}
-
-            <div className="flex items-center gap-3 border-t border-gray-200 p-4">
-              <input
-                type="text"
-                value={commentText}
-                onChange={(e) =>
-                  setCommentText(e.target.value)
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleComment();
+            <div className="border-t border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-2 pl-4 shadow-sm focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={(e) =>
+                    setCommentText(e.target.value)
                   }
-                }}
-                placeholder="Add a comment..."
-                className="flex-1 rounded-full bg-gray-100 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#162A46]/10"
-              />
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey
+                    ) {
+                      e.preventDefault();
+                      handleComment();
+                    }
+                  }}
+                  placeholder="Write a comment..."
+                  className="min-w-0 flex-1 bg-transparent py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                />
 
-              <button
-                type="button"
-                onClick={handleComment}
-                className="rounded-full bg-[#162A46] px-5 py-3 text-sm font-semibold text-white"
-              >
-                Post
-              </button>
+                <button
+                  type="button"
+                  onClick={handleComment}
+                  disabled={
+                    !commentText.trim() ||
+                    commentSubmitting
+                  }
+                  aria-label="Post comment"
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#0F2747] text-white shadow-sm transition hover:bg-[#173B68] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <FiSend size={17} />
+                </button>
+              </div>
+
+              <p className="mt-2 px-1 text-[11px] text-slate-400">
+                Press Enter to post
+              </p>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };

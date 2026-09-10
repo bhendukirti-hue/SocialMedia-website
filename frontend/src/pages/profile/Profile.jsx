@@ -44,10 +44,7 @@ const Profile = () => {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Logged-in user
   const [currentUser, setCurrentUser] = useState(null);
-
-  // Profile being viewed
   const [user, setUser] = useState(null);
 
   const [posts, setPosts] = useState([]);
@@ -72,7 +69,7 @@ const Profile = () => {
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
 
-  // see current user follows
+  // User lists
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [userListType, setUserListType] = useState("");
   const [userList, setUserList] = useState([]);
@@ -88,7 +85,7 @@ const Profile = () => {
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkoB0e7_DXKsiZ1Uu5lUCkOjN01NfE9689KEqAOmYNMQ&s=10";
 
   // ==========================================
-  // CHECK IF OWN PROFILE
+  // CHECK OWN PROFILE
   // ==========================================
 
   const isOwnProfile =
@@ -98,15 +95,18 @@ const Profile = () => {
       currentUser._id.toString() === user._id.toString());
 
   // ==========================================
-  // FETCH LOGGED-IN USER
+  // FETCH CURRENT USER
   // ==========================================
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await axios.get(`${API_URL}/auth/verify-token`, {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${API_URL}/auth/verify-token`,
+          {
+            withCredentials: true,
+          }
+        );
 
         console.log("Current user response:", response.data);
 
@@ -116,7 +116,7 @@ const Profile = () => {
       } catch (error) {
         console.error(
           "Current user error:",
-          error.response?.data || error.message,
+          error.response?.data || error.message
         );
       }
     };
@@ -136,23 +136,20 @@ const Profile = () => {
 
         let response;
 
-        // ======================================
-        // OWN PROFILE
-        // ======================================
-
         if (!userId) {
-          response = await axios.get(`${API_URL}/auth/verify-token`, {
-            withCredentials: true,
-          });
-        }
-
-        // ======================================
-        // OTHER USER PROFILE
-        // ======================================
-        else {
-          response = await axios.get(`${API_URL}/users/${userId}`, {
-            withCredentials: true,
-          });
+          response = await axios.get(
+            `${API_URL}/auth/verify-token`,
+            {
+              withCredentials: true,
+            }
+          );
+        } else {
+          response = await axios.get(
+            `${API_URL}/users/${userId}`,
+            {
+              withCredentials: true,
+            }
+          );
         }
 
         console.log("Profile response:", response.data);
@@ -165,23 +162,18 @@ const Profile = () => {
 
         setUser(userData);
 
-        // ======================================
-        // INITIAL COUNTS
-        // ======================================
-
         setFollowersCount(
           Array.isArray(userData.followers)
             ? userData.followers.length
-            : Number(userData.followersCount) || 0,
+            : Number(userData.followersCount) || 0
         );
 
         setFollowingCount(
           Array.isArray(userData.following)
             ? userData.following.length
-            : Number(userData.followingCount) || 0,
+            : Number(userData.followingCount) || 0
         );
 
-        // Own profile should never be following itself
         if (
           currentUser?._id &&
           userData?._id &&
@@ -195,7 +187,7 @@ const Profile = () => {
         setError(
           err.response?.data?.message ||
             err.message ||
-            "Unable to load profile. Please try again.",
+            "Unable to load profile. Please try again."
         );
       } finally {
         setLoading(false);
@@ -211,10 +203,8 @@ const Profile = () => {
 
   useEffect(() => {
     const fetchFollowStatus = async () => {
-      // No target user
       if (!user?._id) return;
 
-      // Own profile
       if (
         currentUser?._id &&
         currentUser._id.toString() === user._id.toString()
@@ -224,13 +214,13 @@ const Profile = () => {
         setFollowersCount(
           Array.isArray(user.followers)
             ? user.followers.length
-            : Number(user.followersCount) || 0,
+            : Number(user.followersCount) || 0
         );
 
         setFollowingCount(
           Array.isArray(user.following)
             ? user.following.length
-            : Number(user.followingCount) || 0,
+            : Number(user.followingCount) || 0
         );
 
         return;
@@ -241,7 +231,7 @@ const Profile = () => {
           `${API_URL}/follows/${user._id}/follow-status`,
           {
             withCredentials: true,
-          },
+          }
         );
 
         console.log("Follow status response:", response.data);
@@ -249,14 +239,18 @@ const Profile = () => {
         if (response.data?.success) {
           setIsFollowing(Boolean(response.data.isFollowing));
 
-          setFollowersCount(Number(response.data.followersCount) || 0);
+          setFollowersCount(
+            Number(response.data.followersCount) || 0
+          );
 
-          setFollowingCount(Number(response.data.followingCount) || 0);
+          setFollowingCount(
+            Number(response.data.followingCount) || 0
+          );
         }
       } catch (error) {
         console.error(
           "Follow status error:",
-          error.response?.data || error.message,
+          error.response?.data || error.message
         );
       }
     };
@@ -265,8 +259,9 @@ const Profile = () => {
   }, [user?._id, currentUser?._id]);
 
   // ==========================================
-  // Open user list
+  // OPEN USER LIST
   // ==========================================
+
   const openUserList = async (type) => {
     if (!user?._id) return;
 
@@ -276,15 +271,18 @@ const Profile = () => {
       setShowUsersModal(true);
       setUserList([]);
 
-      const response = await axios.get(`${API_URL}/users/${user._id}/${type}`, {
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${API_URL}/users/${user._id}/${type}`,
+        {
+          withCredentials: true,
+        }
+      );
 
       setUserList(response.data.users || []);
     } catch (error) {
       console.error(
         `${type} users error:`,
-        error.response?.data || error.message,
+        error.response?.data || error.message
       );
 
       setUserList([]);
@@ -294,14 +292,12 @@ const Profile = () => {
   };
 
   // ==========================================
-  // HANDLE FOLLOW / UNFOLLOW
+  // FOLLOW / UNFOLLOW
   // ==========================================
 
   const handleFollow = async () => {
-    // Safety checks
     if (!user?._id || followLoading) return;
 
-    // Never allow following yourself
     if (
       currentUser?._id &&
       currentUser._id.toString() === user._id.toString()
@@ -315,26 +311,20 @@ const Profile = () => {
 
       let response;
 
-      // ======================================
-      // UNFOLLOW
-      // ======================================
-
       if (isFollowing) {
-        response = await axios.delete(`${API_URL}/follows/${user._id}/follow`, {
-          withCredentials: true,
-        });
-      }
-
-      // ======================================
-      // FOLLOW
-      // ======================================
-      else {
+        response = await axios.delete(
+          `${API_URL}/follows/${user._id}/follow`,
+          {
+            withCredentials: true,
+          }
+        );
+      } else {
         response = await axios.post(
           `${API_URL}/follows/${user._id}/follow`,
           {},
           {
             withCredentials: true,
-          },
+          }
         );
       }
 
@@ -343,13 +333,14 @@ const Profile = () => {
       if (response.data?.success) {
         setIsFollowing(Boolean(response.data.isFollowing));
 
-        setFollowersCount(Number(response.data.followersCount) || 0);
+        setFollowersCount(
+          Number(response.data.followersCount) || 0
+        );
 
-        // Following count returned by your backend
-        // is the target user's following count.
-        setFollowingCount(Number(response.data.followingCount) || 0);
+        setFollowingCount(
+          Number(response.data.followingCount) || 0
+        );
 
-        // Update profile object as well
         setUser((prev) => {
           if (!prev) return prev;
 
@@ -361,15 +352,20 @@ const Profile = () => {
             if (
               currentUser?._id &&
               !currentFollowers.some(
-                (id) => id.toString() === currentUser._id.toString(),
+                (id) =>
+                  id.toString() ===
+                  currentUser._id.toString()
               )
             ) {
               currentFollowers.push(currentUser._id);
             }
           } else {
-            const updatedFollowers = currentFollowers.filter(
-              (id) => id.toString() !== currentUser?._id?.toString(),
-            );
+            const updatedFollowers =
+              currentFollowers.filter(
+                (id) =>
+                  id.toString() !==
+                  currentUser?._id?.toString()
+              );
 
             return {
               ...prev,
@@ -384,11 +380,14 @@ const Profile = () => {
         });
       }
     } catch (error) {
-      console.error("Follow error:", error.response?.data || error.message);
+      console.error(
+        "Follow error:",
+        error.response?.data || error.message
+      );
 
       alert(
         error.response?.data?.message ||
-          "Something went wrong. Please try again.",
+          "Something went wrong. Please try again."
       );
     } finally {
       setFollowLoading(false);
@@ -407,34 +406,35 @@ const Profile = () => {
 
         let response;
 
-        // ======================================
-        // OWN POSTS
-        // ======================================
-
         if (!userId) {
-          response = await axios.get(`${API_URL}/posts/my-posts`, {
-            withCredentials: true,
-          });
-        }
-
-        // ======================================
-        // OTHER USER POSTS
-        // ======================================
-        else {
-          response = await axios.get(`${API_URL}/posts/user/${userId}`, {
-            withCredentials: true,
-          });
+          response = await axios.get(
+            `${API_URL}/posts/my-posts`,
+            {
+              withCredentials: true,
+            }
+          );
+        } else {
+          response = await axios.get(
+            `${API_URL}/posts/user/${userId}`,
+            {
+              withCredentials: true,
+            }
+          );
         }
 
         console.log("Posts response:", response.data);
 
-        const postData = response.data.posts || response.data;
+        const postData =
+          response.data.posts || response.data;
 
         setPosts(Array.isArray(postData) ? postData : []);
       } catch (err) {
         console.error("Posts error:", err);
 
-        setPostsError(err.response?.data?.message || "Unable to load posts.");
+        setPostsError(
+          err.response?.data?.message ||
+            "Unable to load posts."
+        );
       } finally {
         setPostsLoading(false);
       }
@@ -448,7 +448,9 @@ const Profile = () => {
   // ==========================================
 
   const profileImage =
-    user?.profilePicture || user?.profilePic || defaultProfilePicture;
+    user?.profilePicture ||
+    user?.profilePic ||
+    defaultProfilePicture;
 
   // ==========================================
   // TOTAL LIKES
@@ -457,7 +459,9 @@ const Profile = () => {
   const totalLikes = posts.reduce((total, post) => {
     return (
       total +
-      (Array.isArray(post.likes) ? post.likes.length : Number(post.likes) || 0)
+      (Array.isArray(post.likes)
+        ? post.likes.length
+        : Number(post.likes) || 0)
     );
   }, 0);
 
@@ -485,7 +489,11 @@ const Profile = () => {
       return post.mediaType;
     }
 
-    if (post.videoUrl || post.video || post.type === "video") {
+    if (
+      post.videoUrl ||
+      post.video ||
+      post.type === "video"
+    ) {
       return "video";
     }
 
@@ -509,7 +517,7 @@ const Profile = () => {
   };
 
   // ==========================================
-  // LIKE / UNLIKE POST
+  // LIKE POST
   // ==========================================
 
   const handleLike = async (postId) => {
@@ -519,7 +527,7 @@ const Profile = () => {
         {},
         {
           withCredentials: true,
-        },
+        }
       );
 
       console.log("Like response:", response.data);
@@ -536,10 +544,9 @@ const Profile = () => {
               likeCount: response.data.likeCount,
               likedByMe: response.data.liked,
             };
-          }),
+          })
         );
 
-        // Update modal post too
         setSelectedPost((prev) => {
           if (!prev || prev._id !== postId) {
             return prev;
@@ -553,12 +560,15 @@ const Profile = () => {
         });
       }
     } catch (error) {
-      console.error("Like error:", error.response?.data || error.message);
+      console.error(
+        "Like error:",
+        error.response?.data || error.message
+      );
     }
   };
 
   // ==========================================
-  // OPEN POST
+  // OPEN POST + COMMENTS
   // ==========================================
 
   const openPost = async (post) => {
@@ -573,10 +583,14 @@ const Profile = () => {
         `${API_URL}/posts/${post._id}/comments`,
         {
           withCredentials: true,
-        },
+        }
       );
 
-      setComments(response.data.comments || response.data || []);
+      setComments(
+        response.data.comments ||
+          response.data ||
+          []
+      );
     } catch (error) {
       console.error("Comments error:", error);
 
@@ -613,16 +627,20 @@ const Profile = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
-      const newComment = response.data.comment || response.data;
+      const newComment =
+        response.data.comment || response.data;
 
       setComments((prev) => [...prev, newComment]);
 
       setCommentText("");
     } catch (error) {
-      console.error("Comment error:", error.response?.data || error.message);
+      console.error(
+        "Comment error:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -634,12 +652,16 @@ const Profile = () => {
     if (!selectedPost) return;
 
     try {
-      const shareUrl = `${window.location.origin}/post/` + selectedPost._id;
+      const shareUrl =
+        `${window.location.origin}/post/` +
+        selectedPost._id;
 
       if (navigator.share) {
         await navigator.share({
           title: "Vlogify Post",
-          text: selectedPost.caption || "Check out this post",
+          text:
+            selectedPost.caption ||
+            "Check out this post",
           url: shareUrl,
         });
       } else {
@@ -658,15 +680,6 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      // If your backend has logout endpoint,
-      // call it here.
-      //
-      // await axios.post(
-      //   `${API_URL}/auth/logout`,
-      //   {},
-      //   { withCredentials: true }
-      // );
-
       localStorage.removeItem("token");
 
       setIsSidebarOpen(false);
@@ -678,43 +691,43 @@ const Profile = () => {
   };
 
   // ==========================================
-  // LOADING PROFILE
+  // LOADING
   // ==========================================
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#0B1F33]" />
+          <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-[#315CFF]" />
 
-          <p className="mt-4 text-sm text-gray-500">Loading profile...</p>
+          <p className="mt-3 text-sm text-gray-500">
+            Loading profile...
+          </p>
         </div>
       </div>
     );
   }
 
   // ==========================================
-  // PROFILE ERROR
+  // ERROR
   // ==========================================
 
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-5">
-        <div className="rounded-xl border border-red-100 bg-red-50 px-6 py-5 text-center text-sm text-red-600">
+        <div className="max-w-md rounded-xl border border-red-100 bg-red-50 px-6 py-5 text-center text-sm text-red-600">
           {error}
         </div>
       </div>
     );
   }
 
-  // ==========================================
-  // USER NOT FOUND
-  // ==========================================
-
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-        <p className="text-sm text-gray-500">User profile not found.</p>
+        <p className="text-sm text-gray-500">
+          User profile not found.
+        </p>
       </div>
     );
   }
@@ -724,203 +737,73 @@ const Profile = () => {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-[#F7F9FC] pb-16 text-gray-900">
+
       {/* ==========================================
           SETTINGS SIDEBAR
       ========================================== */}
 
       {isSidebarOpen && (
         <>
-          {/* BACKDROP */}
-
           <div
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-[#07111F]/40 backdrop-blur-[2px]"
             onClick={() => setIsSidebarOpen(false)}
           />
 
-          {/* SIDEBAR */}
-
           <aside className="fixed right-0 top-0 z-50 flex h-full w-full max-w-sm flex-col bg-white shadow-2xl">
-            {/* HEADER */}
 
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.15em] text-gray-400">
-                  Settings
+                <p className="text-xs font-medium uppercase tracking-wider text-[#315CFF]">
+                  Vlogify
                 </p>
 
-                <h2 className="mt-1 text-xl font-bold text-[#0B1F33]">Menu</h2>
+                <h2 className="mt-1 text-xl font-bold text-[#172033]">
+                  Settings
+                </h2>
               </div>
 
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 hover:text-[#0B1F33]"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-gray-500 transition hover:bg-pink-50 hover:text-pink-500"
               >
-                <FiX size={22} />
+                <FiX size={20} />
               </button>
+
             </div>
 
-            {/* LIST */}
-
             <div className="flex-1 overflow-y-auto px-3 py-4">
-              {/* SAVED */}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/saved");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiBookmark size={20} />
-                <span>Saved</span>
-              </button>
+              {[
+                ["Saved", FiBookmark, "/saved"],
+                ["Archived", FiArchive, "/archived"],
+                ["Your Activity", FiActivity, "/activity"],
+                ["Notification", FiBell, "/notifications"],
+                ["Time Management", FiClock, "/time-management"],
+                ["Account Privacy", FiLock, "/account-privacy"],
+                ["Close Friends", FiUsers, "/close-friends"],
+                ["Blocked", FiSlash, "/blocked"],
+                ["Help", FiHelpCircle, "/help"],
+                ["Account Status", FiCheckCircle, "/account-status"],
+                ["About", FiInfo, "/about"],
+              ].map(([label, Icon, path]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => {
+                    setIsSidebarOpen(false);
+                    navigate(path);
+                  }}
+                  className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-[#F5F7FF] hover:text-[#315CFF]"
+                >
+                  <Icon size={19} />
+                  <span>{label}</span>
+                </button>
+              ))}
 
-              {/* ARCHIVED */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/archived");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiArchive size={20} />
-                <span>Archived</span>
-              </button>
-
-              {/* ACTIVITY */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/activity");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiActivity size={20} />
-                <span>Your Activity</span>
-              </button>
-
-              {/* NOTIFICATION */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/notifications");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiBell size={20} />
-                <span>Notification</span>
-              </button>
-
-              {/* TIME MANAGEMENT */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/time-management");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiClock size={20} />
-                <span>Time Management</span>
-              </button>
-
-              {/* ACCOUNT PRIVACY */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/account-privacy");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiLock size={20} />
-                <span>Account Privacy</span>
-              </button>
-
-              {/* CLOSE FRIENDS */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/close-friends");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiUsers size={20} />
-                <span>Close Friends</span>
-              </button>
-
-              {/* BLOCKED */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/blocked");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiSlash size={20} />
-                <span>Blocked</span>
-              </button>
-
-              {/* HELP */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/help");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiHelpCircle size={20} />
-                <span>Help</span>
-              </button>
-
-              {/* ACCOUNT STATUS */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/account-status");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiCheckCircle size={20} />
-                <span>Account Status</span>
-              </button>
-
-              {/* ABOUT */}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  navigate("/about");
-                }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                <FiInfo size={20} />
-                <span>About</span>
-              </button>
-
-              <div className="my-4 border-t border-gray-200" />
-
-              {/* ADD ACCOUNT */}
+              <div className="my-4 border-t border-gray-100" />
 
               <button
                 type="button"
@@ -928,330 +811,368 @@ const Profile = () => {
                   setIsSidebarOpen(false);
                   navigate("/add-account");
                 }}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-semibold text-[#0B1F33] transition hover:bg-gray-100"
+                className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left text-sm font-semibold text-[#315CFF] transition hover:bg-blue-50"
               >
-                <FiUserPlus size={20} />
+                <FiUserPlus size={19} />
                 <span>Add Account</span>
               </button>
-
-              {/* LOGOUT */}
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left text-sm font-semibold text-pink-600 transition hover:bg-pink-50"
               >
-                <FiLogOut size={20} />
+                <FiLogOut size={19} />
                 <span>Logout</span>
               </button>
+
             </div>
           </aside>
         </>
       )}
 
-      {/* ======================================
+      {/* ==========================================
           TOP BAR
-      ====================================== */}
+      ========================================== */}
 
-      <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.15em] text-gray-400">
-              Profile
-            </p>
+      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/95 backdrop-blur">
 
-            <h1 className="mt-1 text-xl font-bold text-[#0B1F33]">
-              {user.username || "Username"}
-            </h1>
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+
+          <div className="flex items-center gap-3">
+
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#315CFF] text-white shadow-sm">
+              <span className="text-sm font-bold">V</span>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                Profile
+              </p>
+
+              <h1 className="max-w-[180px] truncate text-sm font-bold text-[#172033] sm:max-w-none">
+                {user.username || "Username"}
+              </h1>
+            </div>
+
           </div>
 
           <button
             type="button"
             onClick={() => setIsSidebarOpen(true)}
-            className="rounded-xl p-2.5 text-gray-500 transition hover:bg-gray-100 hover:text-[#0B1F33]"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-pink-50 hover:text-pink-500"
           >
             <FiMoreHorizontal size={22} />
           </button>
+
         </div>
-      </div>
 
-      {/* ======================================
-          MAIN CONTENT
-      ====================================== */}
+      </header>
 
-      <div className="mx-auto max-w-6xl px-5 pb-24 pt-8">
-        {/* ====================================
-            PROFILE CARD
-        ==================================== */}
+      {/* ==========================================
+          MAIN
+      ========================================== */}
 
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-7 sm:flex-row sm:items-start">
-            {/* PROFILE PHOTO */}
+      <main className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
 
-            <div className="flex justify-center sm:justify-start">
-              <div className="rounded-full bg-white p-1.5 shadow-md ring-1 ring-gray-100">
-                <img
-                  src={profileImage}
-                  alt={`${user.username || "User"} profile`}
-                  className="h-28 w-28 rounded-full object-cover sm:h-32 sm:w-32"
-                  onError={(e) => {
-                    e.currentTarget.src = defaultProfilePicture;
-                  }}
-                />
-              </div>
-            </div>
+        {/* ==========================================
+            PROFILE HEADER
+        ========================================== */}
 
-            {/* PROFILE DETAILS */}
+        <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-            <div className="flex-1">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-[#0B1F33]">
-                    {user.username || "Username"}
-                  </h2>
+          {/* SOFT TOP ACCENT */}
 
-                  <p className="mt-1 text-sm text-gray-500">
-                    {user.name || user.username || "Your Name"}
-                  </p>
+          <div className="h-20 bg-gradient-to-r from-[#EEF2FF] via-[#FDF2F8] to-[#EFF6FF] sm:h-24" />
+
+          <div className="px-4 pb-6 sm:px-7 sm:pb-8">
+
+            <div className="-mt-12 flex flex-col gap-5 sm:-mt-14 sm:flex-row sm:items-end">
+
+              {/* PROFILE IMAGE */}
+
+              <div className="flex justify-center sm:justify-start">
+
+                <div className="rounded-full bg-white p-1.5 shadow-lg">
+
+                  <img
+                    src={profileImage}
+                    alt={`${user.username || "User"} profile`}
+                    className="h-24 w-24 rounded-full object-cover sm:h-28 sm:w-28"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        defaultProfilePicture;
+                    }}
+                  />
+
                 </div>
 
-                {/* ==================================
-                    BUTTONS
-                ================================== */}
+              </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {/* =================================
-                      OWN PROFILE
-                  ================================= */}
+              {/* PROFILE INFORMATION */}
 
-                  {isOwnProfile && (
-                    <>
-                      {/* CREATE POST */}
+              <div className="flex-1 text-center sm:pb-1 sm:text-left">
 
-                      <button
-                        type="button"
-                        onClick={() => navigate("/profile/createpost")}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                      >
-                        <FiPlus size={16} />
-                        <span>Create Post</span>
-                      </button>
+                <h2 className="text-xl font-bold text-[#172033] sm:text-2xl">
+                  {user.username || "Username"}
+                </h2>
 
-                      {/* EDIT PROFILE */}
+                <p className="mt-1 text-sm text-gray-500">
+                  {user.name ||
+                    user.username ||
+                    "Your Name"}
+                </p>
 
-                      <Link
-                        to="/profile/editprofile"
-                        className="flex items-center justify-center gap-2 rounded-xl bg-[#0B1F33] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#153B5A]"
-                      >
-                        <FiEdit3 size={16} />
-                        Edit Profile
-                      </Link>
-                    </>
-                  )}
+              </div>
 
-                  {/* =================================
-                      OTHER USER
-                  ================================= */}
+              {/* ACTION BUTTONS */}
 
-                  {!isOwnProfile && (
+              <div className="flex flex-wrap justify-center gap-2 sm:justify-end">
+
+                {isOwnProfile ? (
+                  <>
                     <button
                       type="button"
-                      onClick={handleFollow}
-                      disabled={followLoading}
-                      className={`flex min-w-[125px] items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
-                        isFollowing
-                          ? "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                          : "bg-[#0B1F33] text-white hover:bg-[#153B5A]"
-                      } ${
-                        followLoading ? "cursor-not-allowed opacity-60" : ""
-                      }`}
+                      onClick={() =>
+                        navigate("/profile/createpost")
+                      }
+                      className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#315CFF] hover:bg-blue-50 hover:text-[#315CFF]"
                     >
-                      {followLoading ? (
-                        <>
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-current" />
-                          Please wait
-                        </>
-                      ) : isFollowing ? (
-                        <>
-                          <FiUserCheck size={16} />
-                          Following
-                        </>
-                      ) : (
-                        <>
-                          <FiUserPlus size={16} />
-                          Follow
-                        </>
-                      )}
+                      <FiPlus size={16} />
+                      Create
                     </button>
-                  )}
 
-                  {/* SHARE PROFILE */}
-
+                    <Link
+                      to="/profile/editprofile"
+                      className="flex items-center gap-2 rounded-xl bg-[#315CFF] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2548D9]"
+                    >
+                      <FiEdit3 size={16} />
+                      Edit Profile
+                    </Link>
+                  </>
+                ) : (
                   <button
                     type="button"
-                    onClick={async () => {
-                      try {
-                        const profileUrl = window.location.href;
-
-                        if (navigator.share) {
-                          await navigator.share({
-                            title: `${user.username} on Vlogify`,
-                            text:
-                              user.bio ||
-                              `Check out ${user.username}'s profile`,
-                            url: profileUrl,
-                          });
-                        } else {
-                          await navigator.clipboard.writeText(profileUrl);
-
-                          alert("Profile link copied!");
-                        }
-                      } catch (error) {
-                        console.log("Share cancelled");
-                      }
-                    }}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className={`flex min-w-[120px] items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
+                      isFollowing
+                        ? "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                        : "bg-[#315CFF] text-white hover:bg-[#2548D9]"
+                    } ${
+                      followLoading
+                        ? "cursor-not-allowed opacity-60"
+                        : ""
+                    }`}
                   >
-                    <FiShare2 size={16} />
-
-                    <span className="hidden sm:inline">Share</span>
+                    {followLoading ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-current" />
+                    ) : isFollowing ? (
+                      <>
+                        <FiUserCheck size={16} />
+                        Following
+                      </>
+                    ) : (
+                      <>
+                        <FiUserPlus size={16} />
+                        Follow
+                      </>
+                    )}
                   </button>
-                </div>
-              </div>
-
-              {/* ==================================
-                  STATS
-              ================================== */}
-
-              <div className="mt-7 grid grid-cols-4 gap-3 border-y border-gray-100 py-5">
-                {/* POSTS */}
-
-                <div className="text-center sm:text-left">
-                  <p className="text-lg font-bold text-[#0B1F33]">
-                    {posts.length}
-                  </p>
-
-                  <p className="text-xs text-gray-500">Posts</p>
-                </div>
-
-                {/* FOLLOWERS */}
+                )}
 
                 <button
                   type="button"
-                  onClick={() => openUserList("followers")}
-                  className="text-center sm:text-left hover:opacity-70 transition cursor-pointer"
-                >
-                  <p className="text-lg font-bold text-[#0B1F33]">
-                    {followersCount}
-                  </p>
+                  onClick={async () => {
+                    try {
+                      const profileUrl =
+                        window.location.href;
 
-                  <p className="text-xs text-gray-500">Followers</p>
+                      if (navigator.share) {
+                        await navigator.share({
+                          title: `${user.username} on Vlogify`,
+                          text:
+                            user.bio ||
+                            `Check out ${user.username}'s profile`,
+                          url: profileUrl,
+                        });
+                      } else {
+                        await navigator.clipboard.writeText(
+                          profileUrl
+                        );
+
+                        alert("Profile link copied!");
+                      }
+                    } catch (error) {
+                      console.log("Share cancelled");
+                    }
+                  }}
+                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-pink-50 hover:text-pink-500"
+                >
+                  <FiShare2 size={16} />
+                  <span>Share</span>
                 </button>
 
-                {/* FOLLOWING */}
-
-                <button
-                  type="button"
-                  onClick={() => openUserList("following")}
-                  className="text-center sm:text-left hover:opacity-70 transition cursor-pointer"
-                >
-                  <p className="text-lg font-bold text-[#0B1F33]">
-                    {followingCount}
-                  </p>
-
-                  <p className="text-xs text-gray-500">Following</p>
-                </button>
-
-                {/* LIKES */}
-
-                <div className="text-center sm:text-left">
-                  <p className="text-lg font-bold text-[#0B1F33]">
-                    {totalLikes.toLocaleString()}
-                  </p>
-
-                  <p className="text-xs text-gray-500">Likes</p>
-                </div>
               </div>
 
-              {/* ==================================
-                  BIO
-              ================================== */}
-
-              <div className="mt-5">
-                <p className="text-sm font-semibold text-[#0B1F33]">
-                  {user.name || user.username || "Your Name"}
-                </p>
-
-                <p className="mt-1 max-w-xl text-sm leading-6 text-gray-600">
-                  {user.bio || "Add a bio to tell people about yourself."}
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-400">
-                  {user.location && (
-                    <span className="flex items-center gap-1.5">
-                      <FiMapPin size={14} />
-                      {user.location}
-                    </span>
-                  )}
-
-                  {user.joined && (
-                    <span className="flex items-center gap-1.5">
-                      <FiCalendar size={14} />
-                      Joined {user.joined}
-                    </span>
-                  )}
-                </div>
-              </div>
             </div>
+
+            {/* ==========================================
+                STATS
+            ========================================== */}
+
+            <div className="mt-6 grid grid-cols-4 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+
+              <div className="border-r border-gray-100 px-2 py-4 text-center">
+                <p className="text-lg font-bold text-[#172033]">
+                  {posts.length}
+                </p>
+                <p className="text-[11px] text-gray-500 sm:text-xs">
+                  Posts
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  openUserList("followers")
+                }
+                className="border-r border-gray-100 px-2 py-4 text-center transition hover:bg-white"
+              >
+                <p className="text-lg font-bold text-[#172033]">
+                  {followersCount}
+                </p>
+                <p className="text-[11px] text-gray-500 sm:text-xs">
+                  Followers
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  openUserList("following")
+                }
+                className="border-r border-gray-100 px-2 py-4 text-center transition hover:bg-white"
+              >
+                <p className="text-lg font-bold text-[#172033]">
+                  {followingCount}
+                </p>
+                <p className="text-[11px] text-gray-500 sm:text-xs">
+                  Following
+                </p>
+              </button>
+
+              <div className="px-2 py-4 text-center">
+                <p className="text-lg font-bold text-[#172033]">
+                  {totalLikes.toLocaleString()}
+                </p>
+                <p className="text-[11px] text-gray-500 sm:text-xs">
+                  Likes
+                </p>
+              </div>
+
+            </div>
+
+            {/* ==========================================
+                BIO
+            ========================================== */}
+
+            <div className="mt-6">
+
+              <p className="text-sm font-bold text-[#172033]">
+                {user.name ||
+                  user.username ||
+                  "Your Name"}
+              </p>
+
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+                {user.bio ||
+                  "Add a bio to tell people about yourself."}
+              </p>
+
+              <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-gray-500 sm:justify-start">
+
+                {user.location && (
+                  <span className="flex items-center gap-1.5">
+                    <FiMapPin
+                      size={14}
+                      className="text-pink-500"
+                    />
+                    {user.location}
+                  </span>
+                )}
+
+                {user.joined && (
+                  <span className="flex items-center gap-1.5">
+                    <FiCalendar
+                      size={14}
+                      className="text-[#315CFF]"
+                    />
+                    Joined {user.joined}
+                  </span>
+                )}
+
+              </div>
+
+            </div>
+
           </div>
-        </div>
+        </section>
 
-        {/* ====================================
-            POSTS SECTION
-        ==================================== */}
+        {/* ==========================================
+            POSTS
+        ========================================== */}
 
-        <div className="mt-8 rounded-3xl border border-gray-200 bg-white shadow-sm">
+        <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+
           {/* TABS */}
 
           <div className="flex items-center justify-center border-b border-gray-100">
+
             <button
               type="button"
-              className="flex items-center gap-2 border-b-2 border-[#0B1F33] px-6 py-4 text-sm font-semibold text-[#0B1F33]"
+              className="flex items-center gap-2 border-b-2 border-[#315CFF] px-6 py-4 text-xs font-bold text-[#315CFF] sm:text-sm"
             >
-              <FiGrid size={17} />
+              <FiGrid size={16} />
               Posts
             </button>
 
             <button
               type="button"
-              className="flex items-center gap-2 px-6 py-4 text-sm font-medium text-gray-400 transition hover:text-[#0B1F33]"
+              className="flex items-center gap-2 px-6 py-4 text-xs font-medium text-gray-400 transition hover:text-pink-500 sm:text-sm"
             >
-              <FiHeart size={17} />
+              <FiHeart size={16} />
               Liked
             </button>
 
             <button
               type="button"
-              className="hidden items-center gap-2 px-6 py-4 text-sm font-medium text-gray-400 transition hover:text-[#0B1F33] sm:flex"
+              className="hidden items-center gap-2 px-6 py-4 text-xs font-medium text-gray-400 transition hover:text-[#315CFF] sm:flex sm:text-sm"
             >
-              <FiBookmark size={17} />
+              <FiBookmark size={16} />
               Saved
             </button>
+
           </div>
 
-          {/* POSTS LOADING */}
+          {/* ==========================================
+              LOADING
+          ========================================== */}
 
           {postsLoading && (
             <div className="flex min-h-[300px] items-center justify-center">
               <div className="text-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#0B1F33]" />
-
-                <p className="mt-3 text-sm text-gray-500">Loading posts...</p>
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#315CFF]" />
+                <p className="mt-3 text-sm text-gray-500">
+                  Loading posts...
+                </p>
               </div>
             </div>
           )}
 
-          {/* POSTS ERROR */}
+          {/* ==========================================
+              ERROR
+          ========================================== */}
 
           {!postsLoading && postsError && (
             <div className="px-5 py-12 text-center">
@@ -1261,190 +1182,220 @@ const Profile = () => {
             </div>
           )}
 
-          {/* NO POSTS */}
+          {/* ==========================================
+              EMPTY
+          ========================================== */}
 
-          {!postsLoading && !postsError && posts.length === 0 && (
-            <div className="flex min-h-[350px] flex-col items-center justify-center px-5 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                <FiGrid size={28} className="text-gray-400" />
-              </div>
+          {!postsLoading &&
+            !postsError &&
+            posts.length === 0 && (
+              <div className="flex min-h-[320px] flex-col items-center justify-center px-5 text-center">
 
-              <h3 className="mt-5 text-lg font-bold text-[#0B1F33]">
-                No posts yet
-              </h3>
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-pink-50 text-[#315CFF]">
+                  <FiGrid size={27} />
+                </div>
 
-              <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                {isOwnProfile
-                  ? "Share your first photo or video with your followers."
-                  : "This user has not shared any posts yet."}
-              </p>
+                <h3 className="mt-5 text-lg font-bold text-[#172033]">
+                  No posts yet
+                </h3>
 
-              {/* Only own profile can create */}
+                <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
+                  {isOwnProfile
+                    ? "Share your first photo or video with your followers."
+                    : "This user has not shared any posts yet."}
+                </p>
 
-              {isOwnProfile && (
-                <button
-                  type="button"
-                  onClick={() => navigate("/profile/createpost")}
-                  className="mt-5 flex items-center gap-2 rounded-xl bg-[#0B1F33] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#153B5A]"
-                >
-                  <FiPlus size={16} />
-                  Create your first post
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* REAL POSTS GRID */}
-
-          {!postsLoading && !postsError && posts.length > 0 && (
-            <div className="grid grid-cols-2 gap-1 p-1 sm:grid-cols-3 sm:gap-2 sm:p-2">
-              {posts.map((post) => {
-                const mediaUrl = getMediaUrl(post);
-
-                const mediaType = getMediaType(post);
-
-                const likes = getLikes(post);
-
-                return (
-                  <div
-                    key={post._id || post.id}
-                    onClick={() => openPost(post)}
-                    className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-gray-100"
+                {isOwnProfile && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate("/profile/createpost")
+                    }
+                    className="mt-5 flex items-center gap-2 rounded-xl bg-[#315CFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2548D9]"
                   >
-                    {/* IMAGE */}
+                    <FiPlus size={16} />
+                    Create Post
+                  </button>
+                )}
 
-                    {mediaType === "image" && mediaUrl && (
-                      <img
-                        src={mediaUrl}
-                        alt={post.caption || "Post"}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    )}
+              </div>
+            )}
 
-                    {/* VIDEO */}
+          {/* ==========================================
+              POSTS GRID
+          ========================================== */}
 
-                    {mediaType === "video" && mediaUrl && (
-                      <video
-                        src={mediaUrl}
-                        className="h-full w-full object-cover"
-                        muted
-                        playsInline
-                        preload="metadata"
-                      />
-                    )}
+          {!postsLoading &&
+            !postsError &&
+            posts.length > 0 && (
+              <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 sm:grid-cols-3 sm:gap-2 sm:p-2">
 
-                    {/* NO MEDIA */}
+                {posts.map((post) => {
+                  const mediaUrl = getMediaUrl(post);
+                  const mediaType = getMediaType(post);
+                  const likes = getLikes(post);
 
-                    {!mediaUrl && (
-                      <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
-                        No media
-                      </div>
-                    )}
+                  return (
+                    <div
+                      key={post._id || post.id}
+                      onClick={() => openPost(post)}
+                      className="group relative aspect-square cursor-pointer overflow-hidden rounded-lg bg-gray-200"
+                    >
 
-                    {/* HOVER */}
+                      {/* IMAGE */}
 
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover:bg-black/40 group-hover:opacity-100">
-                      <div className="flex items-center gap-5 text-sm font-semibold text-white">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLike(post._id);
-                          }}
-                          className="flex items-center gap-1.5"
-                        >
-                          <FiHeart
-                            size={20}
-                            fill={post.likedByMe ? "currentColor" : "none"}
+                      {mediaType === "image" &&
+                        mediaUrl && (
+                          <img
+                            src={mediaUrl}
+                            alt={
+                              post.caption || "Post"
+                            }
+                            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                            onError={(e) => {
+                              e.currentTarget.style.display =
+                                "none";
+                            }}
                           />
+                        )}
 
-                          {likes}
-                        </button>
+                      {/* VIDEO */}
+
+                      {mediaType === "video" &&
+                        mediaUrl && (
+                          <video
+                            src={mediaUrl}
+                            className="h-full w-full object-cover"
+                            muted
+                            playsInline
+                            preload="metadata"
+                          />
+                        )}
+
+                      {/* VIDEO ICON */}
+
+                      {mediaType === "video" &&
+                        mediaUrl && (
+                          <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm">
+                            <FiVideo size={15} />
+                          </div>
+                        )}
+
+                      {/* NO MEDIA */}
+
+                      {!mediaUrl && (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+                          No media
+                        </div>
+                      )}
+
+                      {/* HOVER */}
+
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/45 group-hover:opacity-100">
+
+                        <div className="flex items-center gap-5 text-sm font-semibold text-white">
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLike(post._id);
+                            }}
+                            className="flex items-center gap-1.5"
+                          >
+                            <FiHeart
+                              size={21}
+                              fill={
+                                post.likedByMe
+                                  ? "currentColor"
+                                  : "none"
+                              }
+                            />
+                            {likes}
+                          </button>
+
+                          <span className="flex items-center gap-1.5">
+                            <FiMessageCircle size={21} />
+                          </span>
+
+                        </div>
+
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
-          {/* CREATE NEW POST */}
+                    </div>
+                  );
+                })}
+
+              </div>
+            )}
+
+          {/* CREATE */}
 
           {posts.length > 0 && isOwnProfile && (
-            <div className="flex justify-center px-5 py-6">
+            <div className="flex justify-center border-t border-gray-100 px-5 py-5">
               <button
                 type="button"
-                onClick={() => navigate("/profile/createpost")}
-                className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 hover:text-[#0B1F33]"
+                onClick={() =>
+                  navigate("/profile/createpost")
+                }
+                className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-[#315CFF] hover:bg-blue-50 hover:text-[#315CFF]"
               >
                 <FiPlus size={16} />
                 Create New Post
               </button>
             </div>
           )}
-        </div>
-      </div>
+
+        </section>
+
+      </main>
 
       {/* ==========================================
-          BOTTOM NAVIGATION
+          MOBILE BOTTOM NAV
       ========================================== */}
 
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-gray-200 bg-white">
+      <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-gray-200 bg-white/95 backdrop-blur">
+
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-around px-4">
-          {/* HOME */}
 
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex h-12 w-12 items-center justify-center rounded-full text-[#0B1F33] transition hover:bg-gray-100"
-            title="Home"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-500 transition hover:bg-blue-50 hover:text-[#315CFF]"
           >
-            <FiHome size={26} strokeWidth={2} />
+            <FiHome size={23} />
           </button>
-
-          {/* REELS */}
 
           <button
             type="button"
             onClick={() => navigate("/reels")}
-            className="flex h-12 w-12 items-center justify-center rounded-full text-[#0B1F33] transition hover:bg-gray-100"
-            title="Reels"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-500 transition hover:bg-pink-50 hover:text-pink-500"
           >
-            <FiVideo size={26} strokeWidth={2} />
+            <FiVideo size={23} />
           </button>
-
-          {/* CREATE POST */}
 
           <button
             type="button"
-            onClick={() => navigate("/profile/createpost")}
-            className="flex h-12 w-12 items-center justify-center rounded-full text-[#0B1F33] transition hover:bg-gray-100"
-            title="Create Post"
+            onClick={() =>
+              navigate("/profile/createpost")
+            }
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#315CFF] text-white shadow-sm transition hover:bg-[#2548D9]"
           >
-            <FiPlus size={30} strokeWidth={2} />
+            <FiPlus size={25} />
           </button>
-
-          {/* SEARCH */}
 
           <button
             type="button"
             onClick={() => navigate("/search")}
-            className="flex h-12 w-12 items-center justify-center rounded-full text-[#0B1F33] transition hover:bg-gray-100"
-            title="Search"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-500 transition hover:bg-blue-50 hover:text-[#315CFF]"
           >
-            <FiSearch size={27} strokeWidth={2} />
+            <FiSearch size={23} />
           </button>
-
-          {/* PROFILE */}
 
           <button
             type="button"
             onClick={() => navigate("/profile")}
-            className="flex h-12 w-12 items-center justify-center rounded-full transition hover:bg-gray-100"
-            title="Profile"
+            className="flex h-11 w-11 items-center justify-center rounded-xl"
           >
             <img
               src={
@@ -1453,45 +1404,55 @@ const Profile = () => {
                 defaultProfilePicture
               }
               alt="Profile"
-              className="h-8 w-8 rounded-full object-cover ring-2 ring-gray-200"
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-[#315CFF]/20"
               onError={(e) => {
-                e.currentTarget.src = defaultProfilePicture;
+                e.currentTarget.src =
+                  defaultProfilePicture;
               }}
             />
           </button>
+
         </div>
       </div>
 
       {/* ==========================================
-          POST VIEWER MODAL
+          POST VIEWER
       ========================================== */}
 
       {selectedPost && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-6"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#07111F]/80 p-0 backdrop-blur-sm sm:p-5"
           onClick={closePost}
         >
+
           <div
-            className="relative flex h-[90vh] w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="relative flex h-full w-full flex-col overflow-hidden bg-white sm:h-[90vh] sm:max-w-6xl sm:flex-row sm:rounded-2xl sm:shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
+
             {/* CLOSE */}
 
             <button
               type="button"
               onClick={closePost}
-              className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+              className="absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/75"
             >
-              <FiX size={22} />
+              <FiX size={20} />
             </button>
 
-            {/* MEDIA */}
+            {/* ==========================================
+                MEDIA
+            ========================================== */}
 
-            <div className="flex flex-1 items-center justify-center bg-black">
-              {getMediaType(selectedPost) === "image" ? (
+            <div className="flex min-h-0 flex-1 items-center justify-center bg-black">
+
+              {getMediaType(selectedPost) ===
+              "image" ? (
                 <img
                   src={getMediaUrl(selectedPost)}
-                  alt={selectedPost.caption || "Post"}
+                  alt={
+                    selectedPost.caption || "Post"
+                  }
                   className="max-h-full max-w-full object-contain"
                 />
               ) : (
@@ -1499,196 +1460,309 @@ const Profile = () => {
                   src={getMediaUrl(selectedPost)}
                   controls
                   autoPlay
+                  playsInline
                   className="max-h-full max-w-full object-contain"
                 />
               )}
+
             </div>
 
-            {/* RIGHT SIDE */}
+            {/* ==========================================
+                COMMENTS PANEL
+            ========================================== */}
 
-            <div className="flex w-full max-w-md flex-col bg-white">
-              {/* USER HEADER */}
+            <div className="flex h-[52%] w-full flex-col bg-white sm:h-full sm:w-[390px]">
 
-              <div className="flex items-center gap-3 border-b border-gray-200 px-5 py-4">
+              {/* USER */}
+
+              <div className="flex shrink-0 items-center gap-3 border-b border-gray-100 px-4 py-3">
+
                 <img
                   src={
-                    selectedPost.user?.profilePicture ||
-                    selectedPost.author?.profilePicture ||
+                    selectedPost.user
+                      ?.profilePicture ||
+                    selectedPost.author
+                      ?.profilePicture ||
                     profileImage
                   }
                   alt="Profile"
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-9 w-9 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      defaultProfilePicture;
+                  }}
                 />
 
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#0B1F33]">
-                    {selectedPost.user?.username ||
-                      selectedPost.author?.username ||
+                <div className="min-w-0 flex-1">
+
+                  <p className="truncate text-sm font-semibold text-[#172033]">
+                    {selectedPost.user
+                      ?.username ||
+                      selectedPost.author
+                        ?.username ||
                       user.username}
                   </p>
 
                   {selectedPost.location && (
-                    <p className="text-xs text-gray-500">
+                    <p className="truncate text-xs text-gray-400">
                       {selectedPost.location}
                     </p>
                   )}
+
                 </div>
 
-                <button
-                  type="button"
-                  className="text-gray-500 hover:text-[#0B1F33]"
-                >
-                  <FiMoreHorizontal size={21} />
-                </button>
+                <FiMoreHorizontal
+                  size={20}
+                  className="text-gray-400"
+                />
+
               </div>
 
-              {/* COMMENTS */}
+              {/* ==========================================
+                  COMMENTS CONTENT
+              ========================================== */}
 
-              <div className="flex-1 overflow-y-auto px-5 py-5">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+
                 {/* CAPTION */}
 
                 {selectedPost.caption && (
-                  <div className="mb-6 flex gap-3">
-                    <img
-                      src={
-                        selectedPost.user?.profilePicture ||
-                        selectedPost.author?.profilePicture ||
-                        profileImage
-                      }
-                      alt="Profile"
-                      className="h-9 w-9 rounded-full object-cover"
-                    />
+                  <div className="border-b border-gray-100 px-4 py-4">
 
-                    <div>
-                      <p className="text-sm text-gray-700">
-                        <span className="font-semibold text-[#0B1F33]">
-                          {selectedPost.user?.username ||
-                            selectedPost.author?.username ||
+                    <div className="flex gap-3">
+
+                      <img
+                        src={
+                          selectedPost.user
+                            ?.profilePicture ||
+                          selectedPost.author
+                            ?.profilePicture ||
+                          profileImage
+                        }
+                        alt="Profile"
+                        className="h-9 w-9 shrink-0 rounded-full object-cover"
+                      />
+
+                      <p className="text-sm leading-6 text-gray-700">
+
+                        <span className="mr-1 font-bold text-[#172033]">
+                          {selectedPost.user
+                            ?.username ||
+                            selectedPost.author
+                              ?.username ||
                             user.username}
-                        </span>{" "}
+                        </span>
+
                         {selectedPost.caption}
+
                       </p>
+
                     </div>
+
                   </div>
                 )}
 
-                {/* COMMENTS LIST */}
+                {/* COMMENTS TITLE */}
 
-                {commentsLoading ? (
-                  <div className="py-10 text-center text-sm text-gray-400">
-                    Loading comments...
+                <div className="px-4 pt-4">
+
+                  <div className="flex items-center justify-between">
+
+                    <h3 className="text-sm font-bold text-[#172033]">
+                      Comments
+                    </h3>
+
+                    <span className="rounded-full bg-pink-50 px-2.5 py-1 text-[11px] font-semibold text-pink-500">
+                      {comments.length}
+                    </span>
+
                   </div>
-                ) : comments.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <FiMessageCircle
-                      size={30}
-                      className="mx-auto text-gray-300"
-                    />
 
-                    <p className="mt-3 text-sm font-medium text-gray-500">
-                      No comments yet
-                    </p>
+                </div>
 
-                    <p className="mt-1 text-xs text-gray-400">
-                      Start the conversation.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {comments.map((comment, index) => (
-                      <div key={comment._id || index} className="flex gap-3">
-                        <img
-                          src={
-                            comment.user?.profilePicture ||
-                            comment.author?.profilePicture ||
-                            defaultProfilePicture
-                          }
-                          alt="User"
-                          className="h-9 w-9 rounded-full object-cover"
-                        />
+                {/* COMMENTS */}
 
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-700">
-                            <span className="font-semibold text-[#0B1F33]">
-                              {comment.user?.username ||
-                                comment.author?.username ||
-                                "User"}
-                            </span>{" "}
-                            {comment.text || comment.comment}
-                          </p>
-                        </div>
+                <div className="px-4 py-4">
+
+                  {commentsLoading ? (
+                    <div className="flex min-h-[180px] items-center justify-center">
+                      <div className="text-center">
+
+                        <div className="mx-auto h-7 w-7 animate-spin rounded-full border-3 border-gray-200 border-t-[#315CFF]" />
+
+                        <p className="mt-3 text-xs text-gray-400">
+                          Loading comments...
+                        </p>
+
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ) : comments.length === 0 ? (
+                    <div className="flex min-h-[180px] flex-col items-center justify-center text-center">
+
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-pink-50">
+                        <FiMessageCircle
+                          size={22}
+                          className="text-[#315CFF]"
+                        />
+                      </div>
+
+                      <p className="mt-3 text-sm font-semibold text-[#172033]">
+                        No comments yet
+                      </p>
+
+                      <p className="mt-1 text-xs text-gray-400">
+                        Be the first to comment.
+                      </p>
+
+                    </div>
+                  ) : (
+                    <div className="space-y-5">
+
+                      {comments.map(
+                        (comment, index) => (
+                          <div
+                            key={
+                              comment._id ||
+                              index
+                            }
+                            className="flex gap-3"
+                          >
+
+                            <img
+                              src={
+                                comment.user
+                                  ?.profilePicture ||
+                                comment.author
+                                  ?.profilePicture ||
+                                defaultProfilePicture
+                              }
+                              alt="User"
+                              className="h-9 w-9 shrink-0 rounded-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  defaultProfilePicture;
+                              }}
+                            />
+
+                            <div className="min-w-0 flex-1">
+
+                              <div className="rounded-2xl bg-gray-50 px-3 py-2.5">
+
+                                <p className="text-xs font-bold text-[#172033]">
+                                  {comment.user
+                                    ?.username ||
+                                    comment.author
+                                      ?.username ||
+                                    "User"}
+                                </p>
+
+                                <p className="mt-1 break-words text-sm leading-5 text-gray-600">
+                                  {comment.text ||
+                                    comment.comment}
+                                </p>
+
+                              </div>
+
+                            </div>
+
+                          </div>
+                        )
+                      )}
+
+                    </div>
+                  )}
+
+                </div>
+
               </div>
 
-              {/* ACTIONS */}
+              {/* ==========================================
+                  ACTIONS + INPUT
+              ========================================== */}
 
-              <div className="border-t border-gray-200">
-                {/* ACTION BUTTONS */}
+              <div className="shrink-0 border-t border-gray-100 bg-white">
 
-                <div className="flex items-center justify-between px-5 pt-4">
+                {/* ACTIONS */}
+
+                <div className="flex items-center justify-between px-4 pt-3">
+
                   <div className="flex items-center gap-5">
-                    {/* LIKE */}
 
                     <button
                       type="button"
-                      onClick={() => handleLike(selectedPost._id)}
+                      onClick={() =>
+                        handleLike(
+                          selectedPost._id
+                        )
+                      }
                       className="transition hover:scale-110"
                     >
                       <FiHeart
-                        size={25}
+                        size={23}
                         className={
                           selectedPost.likedByMe
-                            ? "fill-red-500 text-red-500"
-                            : "text-[#0B1F33]"
+                            ? "fill-pink-500 text-pink-500"
+                            : "text-[#172033]"
                         }
                       />
                     </button>
 
-                    {/* COMMENT */}
-
                     <button
                       type="button"
                       onClick={() => {
-                        document.getElementById("comment-input")?.focus();
+                        document
+                          .getElementById(
+                            "comment-input"
+                          )
+                          ?.focus();
                       }}
-                      className="transition hover:scale-110"
+                      className="text-[#172033] transition hover:scale-110"
                     >
-                      <FiMessageCircle size={25} className="text-[#0B1F33]" />
+                      <FiMessageCircle size={23} />
                     </button>
-
-                    {/* SHARE */}
 
                     <button
                       type="button"
-                      onClick={handleSharePost}
-                      className="transition hover:scale-110"
+                      onClick={
+                        handleSharePost
+                      }
+                      className="text-[#172033] transition hover:scale-110"
                     >
-                      <FiShare2 size={25} className="text-[#0B1F33]" />
+                      <FiShare2 size={23} />
                     </button>
+
                   </div>
 
-                  {/* SAVE */}
-
-                  <button type="button" className="transition hover:scale-110">
-                    <FiBookmark size={24} className="text-[#0B1F33]" />
+                  <button
+                    type="button"
+                    className="text-[#172033] transition hover:scale-110"
+                  >
+                    <FiBookmark size={22} />
                   </button>
+
                 </div>
 
-                {/* LIKE COUNT */}
+                {/* LIKES */}
 
-                <div className="px-5 pt-3">
-                  <p className="text-sm font-semibold text-[#0B1F33]">
-                    {getLikes(selectedPost).toLocaleString()}{" "}
-                    {getLikes(selectedPost) === 1 ? "like" : "likes"}
+                <div className="px-4 pt-2">
+
+                  <p className="text-sm font-bold text-[#172033]">
+                    {getLikes(
+                      selectedPost
+                    ).toLocaleString()}{" "}
+                    {getLikes(
+                      selectedPost
+                    ) === 1
+                      ? "like"
+                      : "likes"}
                   </p>
+
                 </div>
 
                 {/* COMMENT INPUT */}
 
-                <div className="mt-3 flex items-center gap-3 border-t border-gray-100 px-5 py-4">
+                <div className="flex items-center gap-2 px-4 py-3">
+
                   <img
                     src={
                       currentUser?.profilePicture ||
@@ -1696,181 +1770,205 @@ const Profile = () => {
                       defaultProfilePicture
                     }
                     alt="You"
-                    className="h-8 w-8 rounded-full object-cover"
+                    className="h-8 w-8 shrink-0 rounded-full object-cover"
                   />
 
-                  <input
-                    id="comment-input"
-                    type="text"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleComment();
+                  <div className="flex min-w-0 flex-1 items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1">
+
+                    <input
+                      id="comment-input"
+                      type="text"
+                      value={commentText}
+                      onChange={(e) =>
+                        setCommentText(
+                          e.target.value
+                        )
                       }
-                    }}
-                    placeholder="Add a comment..."
-                    className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
-                  />
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleComment();
+                        }
+                      }}
+                      placeholder="Add a comment..."
+                      className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-gray-400"
+                    />
 
-                  <button
-                    type="button"
-                    onClick={handleComment}
-                    disabled={!commentText.trim()}
-                    className="text-sm font-semibold text-[#0B1F33] disabled:opacity-30"
-                  >
-                    Post
-                  </button>
+                    <button
+                      type="button"
+                      onClick={handleComment}
+                      disabled={!commentText.trim()}
+                      className="px-1 text-xs font-bold text-[#315CFF] disabled:opacity-30"
+                    >
+                      Post
+                    </button>
+
+                  </div>
+
                 </div>
+
               </div>
+
             </div>
+
           </div>
         </div>
       )}
+
       {/* ==========================================
-    FOLLOWERS / FOLLOWING MODAL
-========================================== */}
+          FOLLOWERS / FOLLOWING MODAL
+      ========================================== */}
 
-{showUsersModal && (
-  <div
-    className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-4"
-    onClick={() => setShowUsersModal(false)}
-  >
-    <div
-      className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
-      onClick={(e) => e.stopPropagation()}
-    >
-
-      {/* HEADER */}
-
-      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-
-        <h2 className="text-lg font-bold text-[#0B1F33]">
-          {userListType === "followers"
-            ? "Followers"
-            : "Following"}
-        </h2>
-
-        <button
-          type="button"
+      {showUsersModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#07111F]/50 px-3 backdrop-blur-sm"
           onClick={() =>
             setShowUsersModal(false)
           }
-          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100"
         >
-          <FiX size={20} />
-        </button>
 
-      </div>
+          <div
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
 
-      {/* USERS */}
+            {/* HEADER */}
 
-      <div className="max-h-[500px] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
 
-        {userListLoading ? (
-          <div className="flex min-h-[250px] items-center justify-center">
+              <div>
 
-            <div className="text-center">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#315CFF]">
+                  Community
+                </p>
 
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#0B1F33]" />
-
-              <p className="mt-3 text-sm text-gray-500">
-                Loading...
-              </p>
-
-            </div>
-
-          </div>
-        ) : userList.length === 0 ? (
-
-          <div className="flex min-h-[250px] flex-col items-center justify-center px-5 text-center">
-
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-              <FiUser
-                size={25}
-                className="text-gray-400"
-              />
-            </div>
-
-            <p className="mt-4 text-sm font-semibold text-[#0B1F33]">
-              {userListType === "followers"
-                ? "No followers yet"
-                : "Not following anyone"}
-            </p>
-
-          </div>
-
-        ) : (
-
-          <div className="divide-y divide-gray-100">
-
-            {userList.map((person) => (
-
-              <div
-                key={person._id}
-                className="flex items-center gap-3 px-5 py-4"
-              >
-
-                {/* PROFILE IMAGE */}
-
-                <img
-                  src={
-                    person.profilePicture ||
-                    person.profilePic ||
-                    defaultProfilePicture
-                  }
-                  alt={person.username}
-                  className="h-11 w-11 rounded-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      defaultProfilePicture;
-                  }}
-                />
-
-                {/* USER INFO */}
-
-                <div className="min-w-0 flex-1">
-
-                  <p className="truncate text-sm font-semibold text-[#0B1F33]">
-                    {person.username}
-                  </p>
-
-                  {person.name && (
-                    <p className="truncate text-xs text-gray-500">
-                      {person.name}
-                    </p>
-                  )}
-
-                </div>
-
-                {/* VIEW PROFILE */}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUsersModal(false);
-                    navigate(
-                      `/profile/${person._id}`
-                    );
-                  }}
-                  className="rounded-lg bg-[#0B1F33] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#153B5A]"
-                >
-                  View
-                </button>
+                <h2 className="mt-1 text-lg font-bold text-[#172033]">
+                  {userListType ===
+                  "followers"
+                    ? "Followers"
+                    : "Following"}
+                </h2>
 
               </div>
 
-            ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setShowUsersModal(false)
+                }
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-gray-500 transition hover:bg-pink-50 hover:text-pink-500"
+              >
+                <FiX size={19} />
+              </button>
+
+            </div>
+
+            {/* USERS */}
+
+            <div className="max-h-[500px] overflow-y-auto">
+
+              {userListLoading ? (
+                <div className="flex min-h-[250px] items-center justify-center">
+
+                  <div className="text-center">
+
+                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#315CFF]" />
+
+                    <p className="mt-3 text-sm text-gray-500">
+                      Loading...
+                    </p>
+
+                  </div>
+
+                </div>
+              ) : userList.length === 0 ? (
+                <div className="flex min-h-[250px] flex-col items-center justify-center px-5 text-center">
+
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-pink-50">
+                    <FiUser
+                      size={24}
+                      className="text-[#315CFF]"
+                    />
+                  </div>
+
+                  <p className="mt-4 text-sm font-semibold text-[#172033]">
+                    {userListType ===
+                    "followers"
+                      ? "No followers yet"
+                      : "Not following anyone"}
+                  </p>
+
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+
+                  {userList.map(
+                    (person) => (
+                      <div
+                        key={person._id}
+                        className="flex items-center gap-3 px-5 py-3.5"
+                      >
+
+                        <img
+                          src={
+                            person.profilePicture ||
+                            person.profilePic ||
+                            defaultProfilePicture
+                          }
+                          alt={
+                            person.username
+                          }
+                          className="h-11 w-11 rounded-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              defaultProfilePicture;
+                          }}
+                        />
+
+                        <div className="min-w-0 flex-1">
+
+                          <p className="truncate text-sm font-semibold text-[#172033]">
+                            {person.username}
+                          </p>
+
+                          {person.name && (
+                            <p className="truncate text-xs text-gray-500">
+                              {person.name}
+                            </p>
+                          )}
+
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowUsersModal(
+                              false
+                            );
+
+                            navigate(
+                              `/profile/${person._id}`
+                            );
+                          }}
+                          className="rounded-lg bg-[#315CFF] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#2548D9]"
+                        >
+                          View
+                        </button>
+
+                      </div>
+                    )
+                  )}
+
+                </div>
+              )}
+
+            </div>
 
           </div>
+        </div>
+      )}
 
-        )}
-
-      </div>
-
-    </div>
-  </div>
-)}
     </div>
   );
 };

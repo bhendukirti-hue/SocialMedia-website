@@ -387,11 +387,11 @@ const Home = () => {
 
   if (loadingPosts) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+      <div className="flex min-h-screen items-center justify-center bg-[#F6F8FB]">
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#162A46]" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2563EB]" />
 
-          <p className="mt-4 text-sm font-medium text-gray-500">
+          <p className="mt-4 text-sm font-medium text-slate-500">
             Loading Vlogify...
           </p>
         </div>
@@ -404,13 +404,13 @@ const Home = () => {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#172033]">
+    <div className="min-h-screen bg-[#F6F8FB] text-[#0F172A] selection:bg-blue-100 selection:text-[#0F2747]">
 
       {/* =====================================================
           TOP HEADER
       ====================================================== */}
 
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[70px] w-full max-w-[1100px] items-center justify-between px-4 sm:px-6">
 
           {/* LEFT - CREATE */}
@@ -420,7 +420,7 @@ const Home = () => {
             onClick={() =>
               navigate("/profile/createpost")
             }
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#162A46] shadow-sm transition hover:bg-gray-50 active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F2747] shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition hover:bg-slate-50 active:scale-95"
             aria-label="Create post"
             title="Create post"
           >
@@ -431,7 +431,7 @@ const Home = () => {
 
           <Link
             to="/"
-            className="absolute left-1/2 -translate-x-1/2 text-[28px] font-bold tracking-tight text-[#162A46]"
+            className="absolute left-1/2 -translate-x-1/2 text-[27px] font-extrabold tracking-[-0.04em] text-[#0F2747]"
           >
             Vlogify
           </Link>
@@ -449,7 +449,7 @@ const Home = () => {
               onClick={() =>
                 navigate("/messages")
               }
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#162A46] shadow-sm transition hover:bg-gray-50 active:scale-95"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0F2747] shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition hover:bg-slate-50 active:scale-95"
               aria-label="Messages"
               title="Messages"
             >
@@ -465,13 +465,13 @@ const Home = () => {
               onClick={() =>
                 navigate("/notifications")
               }
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#162A46] shadow-sm transition hover:bg-gray-50 active:scale-95"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0F2747] shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition hover:bg-slate-50 active:scale-95"
               aria-label="Notifications"
               title="Notifications"
             >
               <FiHeart size={22} />
 
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
             </button>
 
           </div>
@@ -488,12 +488,12 @@ const Home = () => {
             SEARCH
         ================================================== */}
 
-        <div className="mx-auto max-w-[650px] pt-5">
-          <div className="flex h-[48px] items-center rounded-2xl border border-gray-200 bg-white px-4 shadow-sm transition focus-within:border-[#9AA8BA] focus-within:ring-2 focus-within:ring-[#162A46]/5">
+        <div className="mx-auto max-w-[650px] pt-6">
+          <div className="flex h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition focus-within:border-[#94A3B8] focus-within:ring-2 focus-within:ring-[#0F2747]/5">
 
             <FiSearch
               size={20}
-              className="shrink-0 text-gray-400"
+              className="shrink-0 text-slate-400"
             />
 
             <input
@@ -503,7 +503,7 @@ const Home = () => {
                 setSearchText(e.target.value)
               }
               placeholder="Search posts or users..."
-              className="w-full bg-transparent px-3 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+              className="w-full bg-transparent px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
             />
 
             {searchText && (
@@ -512,7 +512,7 @@ const Home = () => {
                 onClick={() =>
                   setSearchText("")
                 }
-                className="text-gray-400 transition hover:text-gray-700"
+                className="text-slate-400 transition hover:text-slate-700"
                 aria-label="Clear search"
               >
                 <FiX size={18} />
@@ -526,7 +526,7 @@ const Home = () => {
         ================================================== */}
 
         <section className="mx-auto mt-5 max-w-[650px]">
-          <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_4px_18px_rgba(15,39,71,0.06)] ring-1 ring-slate-100">
             <div className="flex gap-5 overflow-x-auto scrollbar-hide">
 
               {/* YOUR STORY */}
@@ -552,12 +552,12 @@ const Home = () => {
                     />
                   </div>
 
-                  <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#162A46] text-white">
+                  <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#0F2747] text-white">
                     <FiPlus size={11} />
                   </span>
                 </div>
 
-                <p className="mt-2 truncate text-xs font-medium text-gray-600">
+                <p className="mt-2 truncate text-xs font-medium text-slate-600">
                   Your story
                 </p>
               </button>
@@ -573,7 +573,7 @@ const Home = () => {
                   }
                   className="w-[70px] shrink-0 text-center"
                 >
-                  <div className="mx-auto h-[62px] w-[62px] rounded-full border-2 border-[#162A46] p-[3px]">
+                  <div className="mx-auto h-[62px] w-[62px] rounded-full border-2 border-[#0F2747] p-[3px]">
                     <img
                       src={story.image}
                       alt={story.username}
@@ -585,7 +585,7 @@ const Home = () => {
                     />
                   </div>
 
-                  <p className="mt-2 truncate text-xs font-medium text-gray-600">
+                  <p className="mt-2 truncate text-xs font-medium text-slate-600">
                     {story.username}
                   </p>
                 </button>
@@ -603,7 +603,7 @@ const Home = () => {
           {/* ERROR */}
 
           {postsError && (
-            <div className="mx-auto max-w-[650px] rounded-2xl border border-red-100 bg-red-50 p-4 text-center text-sm text-red-500">
+            <div className="mx-auto max-w-[650px] rounded-2xl border border-rose-100 bg-rose-50 p-4 text-center text-sm text-rose-500">
               {postsError}
             </div>
           )}
@@ -612,12 +612,12 @@ const Home = () => {
 
           {!postsError &&
             filteredPosts.length === 0 && (
-              <div className="mx-auto max-w-[650px] rounded-2xl border border-gray-200 bg-white px-5 py-20 text-center shadow-sm">
+              <div className="mx-auto max-w-[650px] rounded-2xl border border-slate-200 bg-white px-5 py-20 text-center shadow-[0_4px_18px_rgba(15,39,71,0.06)]">
 
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gray-50">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-50">
                   <FiCamera
                     size={32}
-                    className="text-gray-400"
+                    className="text-slate-400"
                   />
                 </div>
 
@@ -625,7 +625,7 @@ const Home = () => {
                   No posts yet
                 </h2>
 
-                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
+                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
                   Be the first to share your story with the Vlogify community.
                 </p>
 
@@ -634,7 +634,7 @@ const Home = () => {
                   onClick={() =>
                     navigate("/profile/createpost")
                   }
-                  className="mt-6 rounded-xl bg-[#162A46] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#203B60] active:scale-95"
+                  className="mt-6 rounded-xl bg-[#0F2747] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(15,39,71,0.10)] transition hover:bg-[#173B68] active:scale-95"
                 >
                   Create Post
                 </button>
@@ -672,7 +672,7 @@ const Home = () => {
               return (
                 <article
                   key={post._id}
-                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_28px_rgba(15,39,71,0.07)] transition-shadow duration-300 hover:shadow-[0_14px_36px_rgba(15,39,71,0.10)]"
                 >
 
                   {/* ================================
@@ -692,7 +692,7 @@ const Home = () => {
                             );
                           }
                         }}
-                        className="h-11 w-11 shrink-0 rounded-full border border-gray-200 p-[2px]"
+                        className="h-11 w-11 shrink-0 rounded-full border border-slate-200 p-[2px]"
                       >
                         <img
                           src={postProfilePicture}
@@ -718,13 +718,13 @@ const Home = () => {
                               );
                             }
                           }}
-                          className="text-sm font-bold text-[#172033] hover:underline"
+                          className="text-sm font-bold text-[#0F172A] hover:underline"
                         >
                           {post.user?.username ||
                             "Unknown User"}
                         </button>
 
-                        <p className="mt-0.5 text-xs text-gray-400">
+                        <p className="mt-0.5 text-xs text-slate-400">
                           {formatDate(
                             post.createdAt
                           )}
@@ -735,7 +735,7 @@ const Home = () => {
 
                     <button
                       type="button"
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                     >
                       <FiMoreHorizontal
                         size={21}
@@ -754,7 +754,7 @@ const Home = () => {
                     }
                     className="block w-full"
                   >
-                    <div className="aspect-square w-full overflow-hidden bg-gray-100">
+                    <div className="aspect-square w-full overflow-hidden bg-slate-100">
 
                       {post.mediaType ===
                       "video" ? (
@@ -799,14 +799,14 @@ const Home = () => {
                         onClick={() =>
                           handleLike(post._id)
                         }
-                        className="mr-4 flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-gray-100 active:scale-90"
+                        className="mr-4 flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
                       >
                         <FiHeart
                           size={24}
                           className={
                             isLiked
-                              ? "text-red-500"
-                              : "text-[#172033]"
+                              ? "text-rose-500"
+                              : "text-[#0F172A]"
                           }
                           fill={
                             isLiked
@@ -823,7 +823,7 @@ const Home = () => {
                         onClick={() =>
                           setSelectedPost(post)
                         }
-                        className="mr-4 flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-gray-100 active:scale-90"
+                        className="mr-4 flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
                       >
                         <FiMessageCircle
                           size={24}
@@ -837,7 +837,7 @@ const Home = () => {
                         onClick={() =>
                           handleShare(post)
                         }
-                        className="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-gray-100 active:scale-90"
+                        className="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
                       >
                         <FiSend size={23} />
                       </button>
@@ -849,7 +849,7 @@ const Home = () => {
                         onClick={() =>
                           handleSave(post._id)
                         }
-                        className="ml-auto flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-gray-100 active:scale-90"
+                        className="ml-auto flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
                       >
                         <FiBookmark
                           size={24}
@@ -864,7 +864,7 @@ const Home = () => {
 
                     {/* LIKE COUNT */}
 
-                    <p className="mt-3 text-sm font-bold text-[#172033]">
+                    <p className="mt-3 text-sm font-bold text-[#0F172A]">
                       {likeCount.toLocaleString()}{" "}
                       {likeCount === 1
                         ? "like"
@@ -874,8 +874,8 @@ const Home = () => {
                     {/* CAPTION */}
 
                     {post.caption && (
-                      <p className="mt-2 text-sm leading-6 text-gray-600">
-                        <span className="font-bold text-[#172033]">
+                      <p className="mt-2 text-sm leading-6 text-slate-600">
+                        <span className="font-bold text-[#0F172A]">
                           {post.user?.username ||
                             "User"}
                         </span>{" "}
@@ -894,7 +894,7 @@ const Home = () => {
           BOTTOM NAVIGATION
       ====================================================== */}
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 shadow-[0_-5px_25px_rgba(15,23,42,0.08)] backdrop-blur">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 shadow-[0_-5px_25px_rgba(15,23,42,0.08)] backdrop-blur">
         <div className="mx-auto flex h-[72px] w-full max-w-[650px] items-center justify-around px-3">
 
           {/* HOME */}
@@ -906,11 +906,11 @@ const Home = () => {
             }
             className="group flex flex-col items-center justify-center gap-1"
           >
-            <div className="flex h-9 w-12 items-center justify-center rounded-xl bg-[#EEF2F7] text-[#162A46] transition group-hover:bg-[#E5EAF1]">
+            <div className="flex h-9 w-12 items-center justify-center rounded-xl bg-[#EEF3F8] text-[#0F2747] transition group-hover:bg-[#E2E8F0]">
               <FiHome size={22} />
             </div>
 
-            <span className="text-[10px] font-semibold text-[#162A46]">
+            <span className="text-[10px] font-semibold text-[#0F2747]">
               Home
             </span>
           </button>
@@ -924,11 +924,11 @@ const Home = () => {
             }
             className="group flex flex-col items-center justify-center gap-1"
           >
-            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-gray-500 transition group-hover:bg-gray-100 group-hover:text-[#162A46]">
+            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-slate-500 transition group-hover:bg-slate-100 group-hover:text-[#0F2747]">
               <FiVideo size={22} />
             </div>
 
-            <span className="text-[10px] font-medium text-gray-500">
+            <span className="text-[10px] font-medium text-slate-500">
               Reels
             </span>
           </button>
@@ -942,11 +942,11 @@ const Home = () => {
             }
             className="group flex flex-col items-center justify-center gap-1"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#162A46] text-white shadow-md transition group-hover:bg-[#203B60] group-active:scale-95">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0F2747] text-white shadow-[0_8px_24px_rgba(15,39,71,0.10)] transition group-hover:bg-[#173B68] group-active:scale-95">
               <FiPlus size={25} />
             </div>
 
-            <span className="text-[10px] font-semibold text-[#162A46]">
+            <span className="text-[10px] font-semibold text-[#0F2747]">
               Create
             </span>
           </button>
@@ -960,11 +960,11 @@ const Home = () => {
             }
             className="group flex flex-col items-center justify-center gap-1"
           >
-            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-gray-500 transition group-hover:bg-gray-100 group-hover:text-[#162A46]">
+            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-slate-500 transition group-hover:bg-slate-100 group-hover:text-[#0F2747]">
               <FiSearch size={22} />
             </div>
 
-            <span className="text-[10px] font-medium text-gray-500">
+            <span className="text-[10px] font-medium text-slate-500">
               Search
             </span>
           </button>
@@ -978,11 +978,11 @@ const Home = () => {
             }
             className="group flex flex-col items-center justify-center gap-1"
           >
-            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-gray-500 transition group-hover:bg-gray-100 group-hover:text-[#162A46]">
+            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-slate-500 transition group-hover:bg-slate-100 group-hover:text-[#0F2747]">
               <FiMessageCircle size={22} />
             </div>
 
-            <span className="text-[10px] font-medium text-gray-500">
+            <span className="text-[10px] font-medium text-slate-500">
               Messages
             </span>
           </button>
@@ -1000,7 +1000,7 @@ const Home = () => {
               <img
                 src={profileImage}
                 alt="Profile"
-                className="h-8 w-8 rounded-full object-cover ring-2 ring-gray-200 transition group-hover:ring-[#162A46]"
+                className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 transition group-hover:ring-[#0F2747]"
                 onError={(e) => {
                   e.currentTarget.src =
                     defaultProfilePicture;
@@ -1008,7 +1008,7 @@ const Home = () => {
               />
             </div>
 
-            <span className="text-[10px] font-medium text-gray-500">
+            <span className="text-[10px] font-medium text-slate-500">
               Profile
             </span>
           </button>
@@ -1022,7 +1022,7 @@ const Home = () => {
 
       {currentStory && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-md"
           onClick={() =>
             setCurrentStory(null)
           }
@@ -1032,13 +1032,13 @@ const Home = () => {
             onClick={() =>
               setCurrentStory(null)
             }
-            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-gray-800 shadow-xl transition hover:bg-gray-100"
+            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-800 shadow-[0_16px_40px_rgba(15,39,71,0.16)] transition hover:bg-slate-100"
           >
             <FiX size={24} />
           </button>
 
           <div
-            className="relative h-[82vh] w-full max-w-[430px] overflow-hidden rounded-2xl bg-black shadow-2xl"
+            className="relative h-[82vh] w-full max-w-[430px] overflow-hidden rounded-2xl bg-black shadow-[0_24px_60px_rgba(15,39,71,0.18)]"
             onClick={(e) =>
               e.stopPropagation()
             }
@@ -1077,13 +1077,13 @@ const Home = () => {
 
       {selectedPost && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-md"
           onClick={() =>
             setSelectedPost(null)
           }
         >
           <div
-            className="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl lg:flex-row"
+            className="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_rgba(15,39,71,0.18)] lg:flex-row"
             onClick={(e) =>
               e.stopPropagation()
             }
@@ -1096,14 +1096,14 @@ const Home = () => {
               onClick={() =>
                 setSelectedPost(null)
               }
-              className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-lg transition hover:bg-gray-100"
+              className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition hover:bg-slate-100"
             >
               <FiX size={22} />
             </button>
 
             {/* MEDIA */}
 
-            <div className="flex max-h-[65vh] flex-1 items-center justify-center bg-gray-100 lg:max-h-[94vh]">
+            <div className="flex max-h-[65vh] flex-1 items-center justify-center bg-slate-100 lg:max-h-[94vh]">
 
               {selectedPost.mediaType ===
               "video" ? (
@@ -1132,7 +1132,7 @@ const Home = () => {
 
               {/* USER */}
 
-              <div className="flex items-center gap-3 border-b border-gray-200 p-5">
+              <div className="flex items-center gap-3 border-b border-slate-200 p-5">
 
                 <img
                   src={
@@ -1145,7 +1145,7 @@ const Home = () => {
                     selectedPost.user?.username ||
                     "User"
                   }
-                  className="h-11 w-11 rounded-full border border-gray-200 object-cover"
+                  className="h-11 w-11 rounded-full border border-slate-200 object-cover"
                   onError={(e) => {
                     e.currentTarget.src =
                       defaultProfilePicture;
@@ -1153,12 +1153,12 @@ const Home = () => {
                 />
 
                 <div>
-                  <p className="text-sm font-bold text-[#172033]">
+                  <p className="text-sm font-bold text-[#0F172A]">
                     {selectedPost.user?.username ||
                       "Unknown User"}
                   </p>
 
-                  <p className="mt-0.5 text-xs text-gray-400">
+                  <p className="mt-0.5 text-xs text-slate-400">
                     {formatDate(
                       selectedPost.createdAt
                     )}
@@ -1172,8 +1172,8 @@ const Home = () => {
               <div className="flex-1 overflow-y-auto p-5">
 
                 {selectedPost.caption && (
-                  <p className="text-sm leading-7 text-gray-600">
-                    <span className="font-bold text-[#172033]">
+                  <p className="text-sm leading-7 text-slate-600">
+                    <span className="font-bold text-[#0F172A]">
                       {selectedPost.user?.username ||
                         "User"}
                     </span>{" "}
@@ -1185,7 +1185,7 @@ const Home = () => {
 
               {/* ACTIONS */}
 
-              <div className="border-t border-gray-200 p-5">
+              <div className="border-t border-slate-200 p-5">
 
                 <div className="flex items-center gap-3">
 
@@ -1198,7 +1198,7 @@ const Home = () => {
                         selectedPost._id
                       )
                     }
-                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-gray-100"
+                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
                   >
                     <FiHeart
                       size={25}
@@ -1207,8 +1207,8 @@ const Home = () => {
                           selectedPost._id
                         ] ??
                         selectedPost.likedByMe
-                          ? "text-red-500"
-                          : "text-[#172033]"
+                          ? "text-rose-500"
+                          : "text-[#0F172A]"
                       }
                       fill={
                         likedPosts[
@@ -1225,7 +1225,7 @@ const Home = () => {
 
                   <button
                     type="button"
-                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-gray-100"
+                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
                   >
                     <FiMessageCircle
                       size={25}
@@ -1241,7 +1241,7 @@ const Home = () => {
                         selectedPost
                       )
                     }
-                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-gray-100"
+                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
                   >
                     <FiSend size={24} />
                   </button>
@@ -1255,7 +1255,7 @@ const Home = () => {
                         selectedPost._id
                       )
                     }
-                    className="ml-auto flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-gray-100"
+                    className="ml-auto flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
                   >
                     <FiBookmark
                       size={25}
@@ -1273,7 +1273,7 @@ const Home = () => {
 
                 {/* LIKES */}
 
-                <p className="mt-4 text-sm font-bold text-[#172033]">
+                <p className="mt-4 text-sm font-bold text-[#0F172A]">
                   {(
                     selectedPost.likeCount ??
                     selectedPost.likes?.length ??
@@ -1288,17 +1288,17 @@ const Home = () => {
 
                 {/* COMMENT */}
 
-                <div className="mt-4 flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
 
                   <input
                     type="text"
                     placeholder="Add a comment..."
-                    className="flex-1 bg-transparent px-1 py-2 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                    className="flex-1 bg-transparent px-1 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                   />
 
                   <button
                     type="button"
-                    className="rounded-lg px-2 py-1 text-sm font-bold text-[#162A46] transition hover:bg-white"
+                    className="rounded-lg px-2 py-1 text-sm font-bold text-[#0F2747] transition hover:bg-white"
                   >
                     Post
                   </button>
