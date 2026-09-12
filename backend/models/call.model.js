@@ -1,20 +1,15 @@
 const jwt = require("jsonwebtoken");
 
-const registerCallSocket = require("./call.socket");
-
 const connectedUsers = new Map();
 
 const initializeSocket = (io) => {
   io.use((socket, next) => {
     try {
-      const token =
-        socket.handshake.auth?.token;
+      const token = socket.handshake.auth?.token;
 
       if (!token) {
         return next(
-          new Error(
-            "Authentication token is required"
-          )
+          new Error("Authentication token is required")
         );
       }
 
@@ -30,9 +25,7 @@ const initializeSocket = (io) => {
 
       if (!socket.userId) {
         return next(
-          new Error(
-            "Invalid authentication token"
-          )
+          new Error("Invalid authentication token")
         );
       }
 
@@ -44,9 +37,7 @@ const initializeSocket = (io) => {
       );
 
       next(
-        new Error(
-          "Socket authentication failed"
-        )
+        new Error("Socket authentication failed")
       );
     }
   });
@@ -77,9 +68,7 @@ const initializeSocket = (io) => {
     socket.on(
       "messageSent",
       ({ message, receiverId }) => {
-        if (!message || !receiverId) {
-          return;
-        }
+        if (!message || !receiverId) return;
 
         io.to(
           `user:${receiverId}`
@@ -101,9 +90,7 @@ const initializeSocket = (io) => {
     socket.on(
       "joinConversation",
       (conversationId) => {
-        if (!conversationId) {
-          return;
-        }
+        if (!conversationId) return;
 
         socket.join(
           `conversation:${conversationId}`
@@ -122,9 +109,7 @@ const initializeSocket = (io) => {
     socket.on(
       "leaveConversation",
       (conversationId) => {
-        if (!conversationId) {
-          return;
-        }
+        if (!conversationId) return;
 
         socket.leave(
           `conversation:${conversationId}`
@@ -138,13 +123,8 @@ const initializeSocket = (io) => {
 
     socket.on(
       "typing",
-      ({
-        receiverId,
-        conversationId,
-      }) => {
-        if (!receiverId) {
-          return;
-        }
+      ({ receiverId, conversationId }) => {
+        if (!receiverId) return;
 
         io.to(
           `user:${receiverId}`
@@ -164,13 +144,8 @@ const initializeSocket = (io) => {
 
     socket.on(
       "stopTyping",
-      ({
-        receiverId,
-        conversationId,
-      }) => {
-        if (!receiverId) {
-          return;
-        }
+      ({ receiverId, conversationId }) => {
+        if (!receiverId) return;
 
         io.to(
           `user:${receiverId}`
@@ -182,15 +157,6 @@ const initializeSocket = (io) => {
           }
         );
       }
-    );
-
-    // =====================================================
-    // CALL SOCKET EVENTS
-    // =====================================================
-
-    registerCallSocket(
-      io,
-      socket
     );
 
     // =====================================================

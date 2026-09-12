@@ -1,4 +1,6 @@
 const Comment = require("../models/comment.model");
+const Post = require("../models/post.model");
+const Notification = require("../models/notification.model");
 
 // ===============================
 // ADD COMMENT
@@ -25,6 +27,17 @@ const addComment = async (req, res) => {
       });
     }
 
+    // Find post
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Create comment
     const comment = await Comment.create({
       post: postId,
       user: req.user._id,
@@ -32,7 +45,28 @@ const addComment = async (req, res) => {
     });
 
     // Populate user information
-    await comment.populate("user", "username profilePicture");
+    await comment.populate(
+      "user",
+      "username profilePicture"
+    );
+
+    // ==========================================
+    // CREATE COMMENT NOTIFICATION
+    // ==========================================
+
+    // Don't notify user if they comment on their own post
+    if (
+      post.user.toString() !==
+      req.user._id.toString()
+    ) {
+      await Notification.create({
+        recipient: post.user,
+        sender: req.user._id,
+        type: "comment",
+        post: post._id,
+        comment: text.trim(),
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -106,10 +140,14 @@ const deleteComment = async (req, res) => {
     }
 
     // Only comment owner can delete
-    if (comment.user.toString() !== req.user._id.toString()) {
+    if (
+      comment.user.toString() !==
+      req.user._id.toString()
+    ) {
       return res.status(403).json({
         success: false,
-        message: "You can delete only your own comment",
+        message:
+          "You can delete only your own comment",
       });
     }
 

@@ -4,7 +4,6 @@ const User = require("../models/user.model");
 const Message = require("../models/message.model");
 const Conversation = require("../models/conversation.model");
 
-
 // =====================================================
 // GET ALL CONVERSATIONS
 // =====================================================
@@ -29,9 +28,25 @@ exports.getConversations = async (req, res) => {
         updatedAt: -1,
       });
 
+    // Add unread message count for every conversation
+    const conversationsWithUnreadCount = await Promise.all(
+      conversations.map(async (conversation) => {
+        const unreadCount = await Message.countDocuments({
+          conversation: conversation._id,
+          receiver: currentUserId,
+          isRead: false,
+        });
+
+        return {
+          ...conversation.toObject(),
+          unreadCount,
+        };
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      conversations,
+      conversations: conversationsWithUnreadCount,
     });
   } catch (error) {
     console.error("Get conversations error:", error);
@@ -42,7 +57,6 @@ exports.getConversations = async (req, res) => {
     });
   }
 };
-
 
 // =====================================================
 // GET OR CREATE CONVERSATION
@@ -92,7 +106,9 @@ exports.getOrCreateConversation = async (req, res) => {
         participants: [currentUserId, userId],
       });
 
-      conversation = await Conversation.findById(conversation._id).populate(
+      conversation = await Conversation.findById(
+        conversation._id
+      ).populate(
         "participants",
         "_id username name profilePicture profilePic profileImage"
       );
@@ -111,7 +127,6 @@ exports.getOrCreateConversation = async (req, res) => {
     });
   }
 };
-
 
 // =====================================================
 // GET MESSAGES
@@ -170,7 +185,6 @@ exports.getMessages = async (req, res) => {
   }
 };
 
-
 // =====================================================
 // SEND MESSAGE
 // =====================================================
@@ -219,11 +233,14 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
+    // New messages automatically have isRead: false
     const message = await Message.create({
       conversation: conversationId,
       sender: currentUserId,
       receiver: receiverId,
       text: text.trim(),
+      isRead: false,
+      readAt: null,
     });
 
     await Conversation.findByIdAndUpdate(conversationId, {
@@ -256,7 +273,6 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-
 // =====================================================
 // MARK MESSAGES AS READ
 // =====================================================
@@ -265,6 +281,13 @@ exports.markMessagesAsRead = async (req, res) => {
   try {
     const currentUserId = req.user._id || req.user.id;
     const { conversationId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid conversation ID",
+      });
+    }
 
     const conversation = await Conversation.findOne({
       _id: conversationId,
@@ -278,21 +301,25 @@ exports.markMessagesAsRead = async (req, res) => {
       });
     }
 
-    await Message.updateMany(
+    const result = await Message.updateMany(
       {
         conversation: conversationId,
         receiver: currentUserId,
         isRead: false,
       },
       {
-        isRead: true,
-        readAt: new Date(),
+        $set: {
+          isRead: true,
+          readAt: new Date(),
+        },
       }
     );
 
     return res.status(200).json({
       success: true,
       message: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
+      unreadCount: 0,
     });
   } catch (error) {
     console.error("Mark messages read error:", error);

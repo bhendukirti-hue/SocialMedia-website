@@ -11,6 +11,7 @@ import {
   FiVolume2,
   FiVolumeX,
   FiMoreVertical,
+  FiX,
 } from "react-icons/fi";
 
 const Reels = () => {
@@ -36,6 +37,7 @@ const Reels = () => {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([]);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentsLoading, setCommentsLoading] = useState(false);
 
   const videoRefs = useRef({});
 
@@ -84,7 +86,10 @@ const Reels = () => {
         const savedState = {};
 
         videoPosts.forEach((reel) => {
-          likedState[reel._id] = Boolean(reel.likedByMe);
+          likedState[reel._id] = Boolean(
+            reel.likedByMe
+          );
+
           savedState[reel._id] = false;
         });
 
@@ -121,13 +126,11 @@ const Reels = () => {
           const video = entry.target;
 
           if (entry.isIntersecting) {
-            video
-              .play()
-              .catch(() => {
-                console.log(
-                  "Autoplay blocked by browser."
-                );
-              });
+            video.play().catch(() => {
+              console.log(
+                "Autoplay blocked by browser."
+              );
+            });
           } else {
             video.pause();
           }
@@ -191,7 +194,10 @@ const Reels = () => {
         );
 
         setSelectedReel((current) => {
-          if (!current || current._id !== reelId) {
+          if (
+            !current ||
+            current._id !== reelId
+          ) {
             return current;
           }
 
@@ -252,14 +258,87 @@ const Reels = () => {
   };
 
   // ==========================================
+  // FETCH COMMENTS
+  // ==========================================
+
+  const fetchComments = async (reelId) => {
+    try {
+      setCommentsLoading(true);
+
+      const response = await axios.get(
+        `${API_URL}/posts/${reelId}/comments`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      console.log(
+        "REEL COMMENTS:",
+        response.data
+      );
+
+      if (response.data?.success) {
+        const fetchedComments =
+          response.data.comments || [];
+
+        setComments(fetchedComments);
+
+        // Keep comments synchronized
+        // with selected reel
+        setSelectedReel((current) =>
+          current
+            ? {
+                ...current,
+                comments: fetchedComments,
+                commentCount:
+                  fetchedComments.length,
+              }
+            : current
+        );
+
+        // Keep comments synchronized
+        // with reels list
+        setReels((current) =>
+          current.map((reel) =>
+            reel._id === reelId
+              ? {
+                  ...reel,
+                  comments: fetchedComments,
+                  commentCount:
+                    fetchedComments.length,
+                }
+              : reel
+          )
+        );
+      } else {
+        setComments([]);
+      }
+    } catch (err) {
+      console.error(
+        "Fetch comments error:",
+        err.response?.data || err.message
+      );
+
+      setComments([]);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  // ==========================================
   // OPEN COMMENTS
   // ==========================================
 
-  const openComments = (reel) => {
+  const openComments = async (reel) => {
     setSelectedReel(reel);
-    setComments(reel.comments || []);
     setCommentText("");
     setCommentOpen(true);
+
+    // Clear old comments first
+    setComments([]);
+
+    // Fetch latest comments from database
+    await fetchComments(reel._id);
   };
 
   // ==========================================
@@ -272,6 +351,7 @@ const Reels = () => {
     setCommentText("");
     setComments([]);
     setCommentSubmitting(false);
+    setCommentsLoading(false);
   };
 
   // ==========================================
@@ -281,7 +361,11 @@ const Reels = () => {
   const handleComment = async () => {
     const text = commentText.trim();
 
-    if (!text || !selectedReel || commentSubmitting) {
+    if (
+      !text ||
+      !selectedReel ||
+      commentSubmitting
+    ) {
       return;
     }
 
@@ -318,11 +402,13 @@ const Reels = () => {
             },
           };
 
+        // Show new comment immediately
         setComments((current) => [
           ...current,
           newComment,
         ]);
 
+        // Update selected reel
         setSelectedReel((current) =>
           current
             ? {
@@ -331,13 +417,18 @@ const Reels = () => {
                   ...(current.comments || []),
                   newComment,
                 ],
+                commentCount:
+                  (current.commentCount || 0) + 1,
               }
             : current
         );
 
+        // Update reel in list
         setReels((current) =>
           current.map((reel) => {
-            if (reel._id !== selectedReel._id) {
+            if (
+              reel._id !== selectedReel._id
+            ) {
               return reel;
             }
 
@@ -373,7 +464,9 @@ const Reels = () => {
 
   const openUserProfile = (reel) => {
     if (reel?.user?._id) {
-      navigate(`/profile/${reel.user._id}`);
+      navigate(
+        `/profile/${reel.user._id}`
+      );
     }
   };
 
@@ -424,7 +517,7 @@ const Reels = () => {
     return (
       <div className="flex h-screen items-center justify-center bg-[#07111F]">
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-white/80/20 border-t-white" />
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-white" />
 
           <p className="mt-4 text-sm font-medium text-white">
             Loading Reels...
@@ -514,12 +607,14 @@ const Reels = () => {
 
   return (
     <div className="fixed inset-0 bg-[#07111F]">
+
       {/* ==========================================
           TOP HEADER
       ========================================== */}
 
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-40">
         <div className="mx-auto flex max-w-[760px] items-center justify-between px-5 py-5">
+
           <button
             type="button"
             onClick={() => navigate("/")}
@@ -543,6 +638,7 @@ const Reels = () => {
               <FiVolume2 size={21} />
             )}
           </button>
+
         </div>
       </div>
 
@@ -570,6 +666,11 @@ const Reels = () => {
             reel.likes?.length ??
             0;
 
+          const commentCount =
+            reel.commentCount ??
+            reel.comments?.length ??
+            0;
+
           const profilePicture =
             reel.user?.profilePicture ||
             reel.user?.profilePic ||
@@ -581,6 +682,7 @@ const Reels = () => {
               key={reel._id}
               className="relative h-screen w-full snap-start snap-always bg-[#07111F]"
             >
+
               {/* ======================================
                   VIDEO
               ====================================== */}
@@ -616,6 +718,7 @@ const Reels = () => {
               ====================================== */}
 
               <div className="absolute bottom-8 left-5 right-20 z-20">
+
                 <button
                   type="button"
                   onClick={() =>
@@ -650,13 +753,12 @@ const Reels = () => {
                   </div>
                 </button>
 
-                {/* CAPTION */}
-
                 {reel.caption && (
                   <p className="mt-3 line-clamp-3 text-sm leading-6 text-white">
                     {reel.caption}
                   </p>
                 )}
+
               </div>
 
               {/* ======================================
@@ -664,6 +766,7 @@ const Reels = () => {
               ====================================== */}
 
               <div className="absolute bottom-8 right-4 z-30 flex flex-col items-center gap-4">
+
                 {/* LIKE */}
 
                 <div className="flex flex-col items-center">
@@ -710,9 +813,7 @@ const Reels = () => {
                   </button>
 
                   <span className="mt-1 text-xs font-semibold text-white">
-                    {reel.commentCount ??
-                      reel.comments?.length ??
-                      0}
+                    {commentCount}
                   </span>
                 </div>
 
@@ -769,6 +870,7 @@ const Reels = () => {
                 >
                   <FiMoreVertical size={25} />
                 </button>
+
               </div>
             </section>
           );
@@ -776,26 +878,37 @@ const Reels = () => {
       </div>
 
       {/* ==========================================
-          COMMENT MODAL
+          COMMENT PANEL
       ========================================== */}
 
       {commentOpen && selectedReel && (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-[#020817]/75 p-0 backdrop-blur-md sm:items-center sm:p-5"
+          className="fixed inset-0 z-[100] bg-black/35 backdrop-blur-[2px]"
           onClick={closeComments}
         >
+
+          {/* ======================================
+              RIGHT SIDE COMMENT PANEL
+          ====================================== */}
+
           <div
-            className="flex w-full max-w-[620px] max-h-[88vh] flex-col overflow-hidden rounded-t-[28px] bg-white shadow-[0_24px_80px_rgba(2,8,23,0.35)] sm:rounded-[28px]"
+            className="absolute right-0 top-0 flex h-full w-full max-w-[440px] flex-col border-l border-slate-200 bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.20)] sm:w-[440px]"
             onClick={(e) =>
               e.stopPropagation()
             }
           >
-            {/* HEADER */}
+
+            {/* ==================================
+                COMMENT HEADER
+            ================================== */}
+
             <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+
               <div>
-                <h2 className="text-lg font-bold tracking-tight text-[#0F2747]">
+                <h2 className="text-lg font-bold text-[#0F2747]">
                   Comments
                 </h2>
+
                 <p className="mt-0.5 text-xs text-slate-500">
                   {comments.length}{" "}
                   {comments.length === 1
@@ -808,100 +921,188 @@ const Reels = () => {
                 type="button"
                 onClick={closeComments}
                 aria-label="Close comments"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-slate-100 hover:text-[#0F2747] active:scale-95"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#0F2747]"
               >
-                ×
+                <FiX size={21} />
               </button>
+
             </div>
 
-            {/* COMMENTS */}
-            <div className="min-h-[220px] flex-1 overflow-y-auto px-5 py-5">
-              {comments.length > 0 ? (
-                <div className="space-y-5">
-                  {comments.map((comment, index) => {
-                    const commentUser =
-                      comment.user ||
-                      comment.author ||
-                      {};
+            {/* ==================================
+                REEL PREVIEW
+            ================================== */}
 
-                    const commentImage =
-                      commentUser.profilePicture ||
-                      commentUser.profilePic ||
-                      commentUser.profileImage ||
+            <div className="border-b border-slate-100 bg-slate-50 px-5 py-3">
+
+              <div className="flex items-center gap-3">
+
+                <img
+                  src={
+                    selectedReel.user
+                      ?.profilePicture ||
+                    selectedReel.user
+                      ?.profilePic ||
+                    selectedReel.user
+                      ?.profileImage ||
+                    defaultProfilePicture
+                  }
+                  alt={
+                    selectedReel.user
+                      ?.username || "User"
+                  }
+                  className="h-9 w-9 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src =
                       defaultProfilePicture;
+                  }}
+                />
 
-                    return (
-                      <div
-                        key={
-                          comment._id ||
-                          `comment-${index}`
-                        }
-                        className="flex gap-3"
-                      >
-                        <img
-                          src={commentImage}
-                          alt={
-                            commentUser.username ||
-                            "User"
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[#0F2747]">
+                    {selectedReel.user
+                      ?.username ||
+                      "Unknown User"}
+                  </p>
+
+                  {selectedReel.caption && (
+                    <p className="truncate text-xs text-slate-500">
+                      {selectedReel.caption}
+                    </p>
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ==================================
+                COMMENTS LIST
+            ================================== */}
+
+            <div className="min-h-0 flex-1 overflow-y-auto bg-white px-5 py-5">
+
+              {commentsLoading ? (
+                <div className="flex h-full min-h-[300px] items-center justify-center">
+
+                  <div className="text-center">
+
+                    <div className="mx-auto h-8 w-8 animate-spin rounded-full border-3 border-slate-200 border-t-[#0F2747]" />
+
+                    <p className="mt-3 text-xs font-medium text-slate-500">
+                      Loading comments...
+                    </p>
+
+                  </div>
+
+                </div>
+              ) : comments.length > 0 ? (
+                <div className="space-y-5">
+
+                  {comments.map(
+                    (comment, index) => {
+                      const commentUser =
+                        comment.user ||
+                        comment.author ||
+                        {};
+
+                      const commentImage =
+                        commentUser.profilePicture ||
+                        commentUser.profilePic ||
+                        commentUser.profileImage ||
+                        defaultProfilePicture;
+
+                      return (
+                        <div
+                          key={
+                            comment._id ||
+                            `comment-${index}`
                           }
-                          className="h-10 w-10 flex-shrink-0 rounded-full border border-slate-200 object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              defaultProfilePicture;
-                          }}
-                        />
+                          className="flex gap-3"
+                        >
 
-                        <div className="min-w-0 flex-1">
-                          <div className="rounded-2xl bg-slate-50 px-4 py-3">
-                            <p className="text-sm font-semibold text-[#0F2747]">
-                              {commentUser.username ||
-                                "You"}
-                            </p>
+                          <img
+                            src={commentImage}
+                            alt={
+                              commentUser.username ||
+                              "User"
+                            }
+                            className="h-10 w-10 flex-shrink-0 rounded-full border border-slate-200 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                defaultProfilePicture;
+                            }}
+                          />
 
-                            <p className="mt-1 break-words text-sm leading-5 text-slate-600">
-                              {comment.text ||
-                                comment.comment ||
-                                ""}
-                            </p>
+                          <div className="min-w-0 flex-1">
+
+                            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+
+                              <p className="text-sm font-semibold text-[#0F2747]">
+                                {commentUser.username ||
+                                  "You"}
+                              </p>
+
+                              <p className="mt-1 break-words text-sm leading-5 text-slate-600">
+                                {comment.text ||
+                                  comment.comment ||
+                                  ""}
+                              </p>
+
+                            </div>
+
+                            {comment.createdAt && (
+                              <p className="mt-1 px-2 text-[11px] text-slate-400">
+                                {formatDate(
+                                  comment.createdAt
+                                )}
+                              </p>
+                            )}
+
                           </div>
 
-                          {comment.createdAt && (
-                            <p className="mt-1 px-2 text-[11px] text-slate-400">
-                              {formatDate(
-                                comment.createdAt
-                              )}
-                            </p>
-                          )}
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    }
+                  )}
+
                 </div>
               ) : (
-                <div className="flex min-h-[220px] flex-col items-center justify-center text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#2563EB]">
-                    <FiMessageCircle size={28} />
+                <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-[#0F2747]">
+                    <FiMessageCircle
+                      size={28}
+                    />
                   </div>
 
                   <h3 className="mt-4 text-base font-semibold text-[#0F2747]">
                     No comments yet
                   </h3>
 
-                  <p className="mt-1 max-w-xs text-sm text-slate-500">
+                  <p className="mt-1 max-w-xs text-sm leading-5 text-slate-500">
                     Be the first to share your thoughts on this reel.
                   </p>
+
                 </div>
               )}
+
             </div>
 
-            {/* INPUT */}
+            {/* ==================================
+                COMMENT INPUT
+            ================================== */}
+
             <div className="border-t border-slate-200 bg-white p-4">
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-2 pl-4 shadow-sm focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10">
+
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-2 pl-4 transition focus-within:border-[#0F2747] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#0F2747]/10">
+
                 <input
                   type="text"
                   value={commentText}
                   onChange={(e) =>
-                    setCommentText(e.target.value)
+                    setCommentText(
+                      e.target.value
+                    )
                   }
                   onKeyDown={(e) => {
                     if (
@@ -928,16 +1129,18 @@ const Reels = () => {
                 >
                   <FiSend size={17} />
                 </button>
+
               </div>
 
               <p className="mt-2 px-1 text-[11px] text-slate-400">
                 Press Enter to post
               </p>
+
             </div>
+
           </div>
         </div>
       )}
-
     </div>
   );
 };
@@ -958,6 +1161,7 @@ const FiVideoIcon = () => {
       className="text-white"
     >
       <polygon points="23 7 16 12 23 17 23 7" />
+
       <rect
         x="1"
         y="5"

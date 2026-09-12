@@ -504,32 +504,87 @@ const UserProfile = () => {
   // ==========================================
   // ADD COMMENT
   // ==========================================
-  const handleComment = async () => {
-    if (!commentText.trim()) return;
+const handleComment = async () => {
+  if (!commentText.trim()) return;
 
-    if (!currentUser) {
-      alert("Please login to comment.");
-      return;
-    }
+  if (!currentUser) {
+    alert("Please login to comment.");
+    return;
+  }
 
-    const newComment = {
-      _id: Date.now().toString(),
-      text: commentText.trim(),
-      user: {
-        _id: currentUser._id,
-        username: currentUser.username,
-        profilePicture:
-          currentUser.profilePicture || "",
+  if (!selectedPost?._id) return;
+
+  try {
+    const response = await axios.post(
+      `${API_URL}/posts/${selectedPost._id}/comment`,
+      {
+        text: commentText.trim(),
       },
-    };
+      {
+        withCredentials: true,
+      }
+    );
 
+    const newComment =
+      response.data.comment || {
+        _id: Date.now().toString(),
+        text: commentText.trim(),
+        user: {
+          _id: currentUser._id,
+          username: currentUser.username,
+          profilePicture:
+            currentUser.profilePicture || "",
+        },
+      };
+
+    // Show comment immediately
     setComments((prev) => [
       ...prev,
       newComment,
     ]);
 
+    // Update selected post comments
+    setSelectedPost((prev) =>
+      prev
+        ? {
+            ...prev,
+            comments: [
+              ...(prev.comments || []),
+              newComment,
+            ],
+          }
+        : prev
+    );
+
+    // Update post inside posts array
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === selectedPost._id
+          ? {
+              ...post,
+              comments: [
+                ...(post.comments || []),
+                newComment,
+              ],
+            }
+          : post
+      )
+    );
+
+    // Clear input
     setCommentText("");
-  };
+  } catch (error) {
+    console.error(
+      "Add comment error:",
+      error
+    );
+
+    alert(
+      error.response?.data?.message ||
+        "Failed to add comment."
+    );
+  }
+};
 
   // ==========================================
   // ESC KEY
