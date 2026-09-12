@@ -292,7 +292,187 @@ class AuthController {
         }
     };
 
+    // ==========================================
+// FORGOT PASSWORD
+// ==========================================
 
+static forgotPassword = async (req, res, next) => {
+    try {
+
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Email is required"
+            });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const user = await UserModel.findOne({
+            email: normalizedEmail
+        });
+
+        // Don't reveal whether email exists
+        if (!user) {
+            return res.status(200).json({
+                success: true,
+                message:
+                    "If an account exists with this email, a password reset link has been sent."
+            });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString("hex");
+
+        // Hash token before saving in database
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+
+        // Save token and expiry
+        user.resetPasswordToken = hashedToken;
+
+        user.resetPasswordExpires =
+            new Date(Date.now() + 15 * 60 * 1000);
+
+        await user.save();
+
+        // Frontend reset URL
+        const resetUrl =
+            `http://localhost:5173/reset-password/${resetToken}`;
+
+        await sendEmail(
+            normalizedEmail,
+            "Reset Your Vlogify Password",
+            `Reset your Vlogify password using this link: ${resetUrl}`,
+            `
+                <div style="font-family:Arial;padding:20px">
+
+                    <h2 style="color:#2563EB">
+                        Reset Your Password
+                    </h2>
+
+                    <p>Hello ${user.username},</p>
+
+                    <p>
+                        We received a request to reset your Vlogify
+                        account password.
+                    </p>
+
+                    <p>
+                        Click the button below to create a new password.
+                    </p>
+
+                    <a
+                        href="${resetUrl}"
+                        style="
+                            display:inline-block;
+                            padding:12px 20px;
+                            background:#2563EB;
+                            color:white;
+                            text-decoration:none;
+                            border-radius:8px;
+                            margin:15px 0;
+                        "
+                    >
+                        Reset Password
+                    </a>
+
+                    <p>
+                        This link will expire in 15 minutes.
+                    </p>
+
+                    <p>
+                        If you did not request this, you can safely
+                        ignore this email.
+                    </p>
+
+                </div>
+            `
+        );
+
+        return res.status(200).json({
+            success: true,
+            message:
+                "If an account exists with this email, a password reset link has been sent."
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+    // ==========================================
+// RESET PASSWORD
+// ==========================================
+
+static resetPassword = async (req, res, next) => {
+    try {
+
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Token and new password are required"
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 6 characters"
+            });
+        }
+
+        // Hash token
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        // Find user with valid token
+        const user = await UserModel.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: {
+                $gt: new Date()
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Reset link is invalid or expired"
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(
+            password,
+            saltRounds
+        );
+
+        // Update password
+        user.password = hashedPassword;
+
+        // Remove reset token
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successful"
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
     // ==========================================
     // LOGOUT
     // ==========================================

@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import {
-  FiMail,
   FiLock,
   FiEye,
   FiEyeOff,
@@ -11,40 +10,39 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 
-const Login = () => {
+const ResetPassword = () => {
+  const { token } = useParams();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Handle input
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setError("");
-  };
-
-  // Login
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
-    if (!formData.email || !formData.password) {
-      setError("Please enter your email and password.");
+    if (!password || !confirmPassword) {
+      setError("Please enter your new password.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
@@ -52,34 +50,28 @@ const Login = () => {
       setLoading(true);
 
       const response = await axios.post(
-        "http://localhost:8808/api/auth/login",
+        `http://localhost:8808/api/auth/reset-password/${token}`,
         {
-          email: formData.email,
-          password: formData.password,
-        },
-        {
-          withCredentials: true,
+          password,
         }
       );
 
-      console.log("Login response:", response.data);
-
-      // Cookie is already set by the backend.
-      // No localStorage required.
-
-      setSuccess("Login successful! Redirecting...");
+      setSuccess(
+        response.data?.message ||
+          "Password reset successful."
+      );
 
       setTimeout(() => {
-        navigate("/");
-      }, 800);
+        navigate("/login");
+      }, 1500);
+
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("Reset password error:", err);
 
-      const message =
+      setError(
         err.response?.data?.message ||
-        "Unable to login. Please check your email and password.";
-
-      setError(message);
+          "Unable to reset password. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -109,17 +101,19 @@ const Login = () => {
 
           {/* Heading */}
           <div className="text-center">
+
             <span className="inline-block rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-600">
-              Welcome Back
+              Password Reset
             </span>
 
             <h1 className="mt-3 text-2xl font-bold text-gray-900">
-              Sign in to Vlogify
+              Create new password
             </h1>
 
             <p className="mt-2 text-sm text-gray-500">
-              Continue your journey with us.
+              Enter your new password below.
             </p>
+
           </div>
 
           {/* Error */}
@@ -138,70 +132,34 @@ const Login = () => {
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="mt-6 space-y-5"
+          >
 
-            {/* Email */}
+            {/* New Password */}
             <div>
               <label
-                htmlFor="email"
+                htmlFor="password"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Email address
+                New password
               </label>
 
               <div className="relative">
-                <FiMail
+
+                <FiLock
                   size={17}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500"
                 />
 
                 <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  autoComplete="email"
-                  className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
-
-                <Link
-                  to="/forgot-password"
-                  className="text-xs font-semibold text-blue-600 hover:text-pink-600"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <div className="relative">
-                <FiLock
-                  size={17}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pink-500"
-                />
-
-                <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                  className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-11 text-sm outline-none transition focus:border-pink-500 focus:bg-white focus:ring-4 focus:ring-pink-500/10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-11 text-sm outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
                 />
 
                 <button
@@ -210,11 +168,6 @@ const Login = () => {
                     setShowPassword(!showPassword)
                   }
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
                 >
                   {showPassword ? (
                     <FiEyeOff size={18} />
@@ -222,10 +175,61 @@ const Login = () => {
                     <FiEye size={18} />
                   )}
                 </button>
+
               </div>
             </div>
 
-            {/* Login Button */}
+            {/* Confirm Password */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Confirm password
+              </label>
+
+              <div className="relative">
+
+                <FiLock
+                  size={17}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pink-500"
+                />
+
+                <input
+                  id="confirmPassword"
+                  type={
+                    showConfirmPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={confirmPassword}
+                  onChange={(e) =>
+                    setConfirmPassword(e.target.value)
+                  }
+                  placeholder="Confirm new password"
+                  className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 pl-10 pr-11 text-sm outline-none transition focus:border-pink-500 focus:bg-white focus:ring-4 focus:ring-pink-500/10"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(
+                      !showConfirmPassword
+                    )
+                  }
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                >
+                  {showConfirmPassword ? (
+                    <FiEyeOff size={18} />
+                  ) : (
+                    <FiEye size={18} />
+                  )}
+                </button>
+
+              </div>
+            </div>
+
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -234,33 +238,30 @@ const Login = () => {
               {loading ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Signing in...
+                  Updating...
                 </>
               ) : (
                 <>
-                  Sign In
+                  Reset Password
                   <FiArrowRight size={17} />
                 </>
               )}
             </button>
+
           </form>
 
-          {/* Register */}
+          {/* Login */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="font-semibold text-blue-600 hover:text-pink-600"
-              >
-                Create account
-              </Link>
-            </p>
+            <Link
+              to="/login"
+              className="text-sm font-semibold text-blue-600 hover:text-pink-600"
+            >
+              Back to Login
+            </Link>
           </div>
 
         </div>
 
-        {/* Footer */}
         <p className="mt-5 text-center text-xs text-gray-400">
           © 2026 Vlogify. All rights reserved.
         </p>
@@ -270,4 +271,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPassword;

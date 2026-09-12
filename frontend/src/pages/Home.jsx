@@ -41,6 +41,7 @@ const Home = () => {
   const [likedPosts, setLikedPosts] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+
   // ==========================================
   // DEFAULT PROFILE IMAGE
   // ==========================================
@@ -136,6 +137,7 @@ const Home = () => {
       );
     }
   };
+
   // ==========================================
   // REAL-TIME MESSAGE COUNT
   // ==========================================
@@ -158,7 +160,6 @@ const Home = () => {
 
       const currentUserId = currentUser?._id || currentUser?.id;
 
-      // Don't count messages sent by yourself
       if (senderId?.toString() === currentUserId?.toString()) {
         return;
       }
@@ -170,10 +171,10 @@ const Home = () => {
 
     return () => {
       socket.off("newMessage", handleNewMessage);
-
       socket.disconnect();
     };
   }, [currentUser]);
+
   // ==========================================
   // FETCH POSTS
   // ==========================================
@@ -424,12 +425,20 @@ const Home = () => {
 
   if (loadingPosts) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F6F8FB]">
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFF]">
         <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#2563EB]" />
+          <div className="relative mx-auto h-14 w-14">
+            <div className="absolute inset-0 rounded-full border-4 border-blue-100" />
 
-          <p className="mt-4 text-sm font-medium text-slate-500">
-            Loading Vlogify...
+            <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[#2563EB] border-r-[#EC4899]" />
+          </div>
+
+          <h2 className="mt-5 text-xl font-extrabold tracking-tight text-[#172554]">
+            Vlogify
+          </h2>
+
+          <p className="mt-1 text-sm font-medium text-slate-400">
+            Loading your feed...
           </p>
         </div>
       </div>
@@ -441,105 +450,114 @@ const Home = () => {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-[#F6F8FB] text-[#0F172A] selection:bg-blue-100 selection:text-[#0F2747]">
+    <div className="min-h-screen bg-[#F7F9FF] text-[#172033] selection:bg-pink-100 selection:text-pink-700">
+
       {/* =====================================================
           TOP HEADER
       ====================================================== */}
 
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-[70px] w-full max-w-[1100px] items-center justify-between px-4 sm:px-6">
-          {/* LEFT - CREATE */}
+      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 shadow-[0_4px_30px_rgba(37,99,235,0.05)] backdrop-blur-2xl">
+        <div className="mx-auto flex h-[74px] w-full max-w-[1150px] items-center justify-between px-4 sm:px-6">
+
+          {/* CREATE */}
 
           <button
             type="button"
             onClick={() => navigate("/profile/createpost")}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F2747] shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition hover:bg-slate-50 active:scale-95"
+            className="group flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-pink-50 text-[#2563EB] shadow-[0_6px_20px_rgba(37,99,235,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-pink-200 hover:text-pink-500 hover:shadow-[0_10px_25px_rgba(236,72,153,0.12)] active:scale-95"
             aria-label="Create post"
             title="Create post"
           >
-            <FiPlus size={24} />
+            <FiPlus
+              size={24}
+              className="transition-transform duration-300 group-hover:rotate-90"
+            />
           </button>
 
           {/* LOGO */}
 
           <Link
             to="/"
-            className="absolute left-1/2 -translate-x-1/2 text-[27px] font-extrabold tracking-[-0.04em] text-[#0F2747]"
+            className="absolute left-1/2 -translate-x-1/2"
           >
-            Vlogify
+            <span className="bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#EC4899] bg-clip-text text-[29px] font-black tracking-[-0.055em] text-transparent">
+              Vlogify
+            </span>
           </Link>
 
           {/* RIGHT ACTIONS */}
 
           <div className="flex items-center gap-2">
-            {/* ==========================================
-                MESSAGES
-            ========================================== */}
+
+            {/* MESSAGES */}
 
             <button
               type="button"
               onClick={() => navigate("/messages")}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0F2747] shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition hover:bg-slate-50 active:scale-95"
+              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-[#2563EB] shadow-[0_6px_20px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 active:scale-95"
               aria-label="Messages"
               title="Messages"
             >
               <FiMessageCircle size={22} />
 
               {unreadMessageCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex min-w-[19px] h-[19px] items-center justify-center rounded-full bg-[#EC4899] px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+                <span className="absolute -right-1.5 -top-1.5 flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full bg-gradient-to-r from-[#EC4899] to-[#DB2777] px-1 text-[10px] font-extrabold text-white shadow-[0_4px_12px_rgba(236,72,153,0.35)] ring-2 ring-white">
                   {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
                 </span>
               )}
             </button>
 
-            {/* ==========================================
-                NOTIFICATIONS
-            ========================================== */}
+            {/* NOTIFICATIONS */}
 
             <button
               type="button"
               onClick={() => navigate("/notifications")}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-[#0F2747] shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition hover:bg-slate-50 active:scale-95"
+              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-[#EC4899] shadow-[0_6px_20px_rgba(236,72,153,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-pink-200 hover:bg-pink-50 active:scale-95"
               aria-label="Notifications"
               title="Notifications"
             >
               <FiHeart size={22} />
 
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-[#2563EB] ring-2 ring-white" />
             </button>
           </div>
         </div>
       </header>
 
       {/* =====================================================
-          MAIN CONTAINER
+          MAIN
       ====================================================== */}
 
-      <main className="mx-auto w-full max-w-[1100px] px-4 pb-28 sm:px-6">
+      <main className="mx-auto w-full max-w-[1150px] px-4 pb-32 sm:px-6">
+
         {/* =================================================
             SEARCH
         ================================================== */}
 
-        <div className="mx-auto max-w-[650px] pt-6">
-          <div className="flex h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_4px_18px_rgba(15,39,71,0.06)] transition focus-within:border-[#94A3B8] focus-within:ring-2 focus-within:ring-[#0F2747]/5">
-            <FiSearch size={20} className="shrink-0 text-slate-400" />
+        <div className="mx-auto max-w-[680px] pt-7">
+
+          <div className="group relative flex h-[54px] items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(37,99,235,0.06)] transition-all duration-300 focus-within:border-blue-200 focus-within:shadow-[0_10px_35px_rgba(37,99,235,0.10)]">
+
+            <div className="ml-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-pink-50 text-[#2563EB]">
+              <FiSearch size={19} />
+            </div>
 
             <input
               type="text"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search posts or users..."
-              className="w-full bg-transparent px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+              placeholder="Search people, posts or captions..."
+              className="h-full w-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
             />
 
             {searchText && (
               <button
                 type="button"
                 onClick={() => setSearchText("")}
-                className="text-slate-400 transition hover:text-slate-700"
+                className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-pink-50 hover:text-pink-500"
                 aria-label="Clear search"
               >
-                <FiX size={18} />
+                <FiX size={16} />
               </button>
             )}
           </div>
@@ -549,34 +567,57 @@ const Home = () => {
             STORIES
         ================================================== */}
 
-        <section className="mx-auto mt-5 max-w-[650px]">
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_4px_18px_rgba(15,39,71,0.06)] ring-1 ring-slate-100">
-            <div className="flex gap-5 overflow-x-auto scrollbar-hide">
+        <section className="mx-auto mt-6 max-w-[680px]">
+
+          <div className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_10px_35px_rgba(37,99,235,0.06)] sm:p-5">
+
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-extrabold tracking-tight text-[#172554]">
+                  Stories
+                </h2>
+
+                <p className="mt-0.5 text-[11px] font-medium text-slate-400">
+                  See what your community is sharing
+                </p>
+              </div>
+
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-600">
+                {stories.length + 1}
+              </span>
+            </div>
+
+            <div className="scrollbar-hide flex gap-5 overflow-x-auto pb-1">
+
               {/* YOUR STORY */}
 
               <button
                 type="button"
                 onClick={() => navigate("/profile/createpost")}
-                className="w-[70px] shrink-0 text-center"
+                className="group w-[72px] shrink-0 text-center"
               >
-                <div className="relative mx-auto h-[62px] w-[62px]">
-                  <div className="h-full w-full rounded-full border-2 border-dashed border-gray-300 p-[3px]">
-                    <img
-                      src={profileImage}
-                      alt="Your story"
-                      className="h-full w-full rounded-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = defaultProfilePicture;
-                      }}
-                    />
+                <div className="relative mx-auto h-[66px] w-[66px]">
+
+                  <div className="h-full w-full rounded-full bg-gradient-to-tr from-[#2563EB] via-[#7C3AED] to-[#EC4899] p-[2px] shadow-[0_5px_18px_rgba(236,72,153,0.18)]">
+
+                    <div className="h-full w-full rounded-full bg-white p-[3px]">
+                      <img
+                        src={profileImage}
+                        alt="Your story"
+                        className="h-full w-full rounded-full object-cover transition duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          e.currentTarget.src = defaultProfilePicture;
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#0F2747] text-white">
-                    <FiPlus size={11} />
+                  <span className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gradient-to-r from-[#2563EB] to-[#EC4899] text-white shadow-md">
+                    <FiPlus size={12} />
                   </span>
                 </div>
 
-                <p className="mt-2 truncate text-xs font-medium text-slate-600">
+                <p className="mt-2 truncate text-[11px] font-bold text-slate-600">
                   Your story
                 </p>
               </button>
@@ -588,20 +629,23 @@ const Home = () => {
                   type="button"
                   key={story.id || index}
                   onClick={() => openStory(story)}
-                  className="w-[70px] shrink-0 text-center"
+                  className="group w-[72px] shrink-0 text-center"
                 >
-                  <div className="mx-auto h-[62px] w-[62px] rounded-full border-2 border-[#0F2747] p-[3px]">
-                    <img
-                      src={story.image}
-                      alt={story.username}
-                      className="h-full w-full rounded-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = defaultProfilePicture;
-                      }}
-                    />
+                  <div className="mx-auto h-[66px] w-[66px] rounded-full bg-gradient-to-tr from-[#2563EB] via-[#8B5CF6] to-[#EC4899] p-[2px] shadow-[0_5px_18px_rgba(37,99,235,0.12)]">
+
+                    <div className="h-full w-full rounded-full bg-white p-[3px]">
+                      <img
+                        src={story.image}
+                        alt={story.username}
+                        className="h-full w-full rounded-full object-cover transition duration-300 group-hover:scale-105"
+                        onError={(e) => {
+                          e.currentTarget.src = defaultProfilePicture;
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  <p className="mt-2 truncate text-xs font-medium text-slate-600">
+                  <p className="mt-2 truncate text-[11px] font-semibold text-slate-600">
                     {story.username}
                   </p>
                 </button>
@@ -614,50 +658,64 @@ const Home = () => {
             FEED
         ================================================== */}
 
-        <section className="mt-6">
+        <section className="mt-7">
+
           {/* ERROR */}
 
           {postsError && (
-            <div className="mx-auto max-w-[650px] rounded-2xl border border-rose-100 bg-rose-50 p-4 text-center text-sm text-rose-500">
-              {postsError}
+            <div className="mx-auto max-w-[680px] rounded-2xl border border-rose-100 bg-gradient-to-r from-rose-50 to-pink-50 p-5 text-center shadow-sm">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-rose-500 shadow-sm">
+                <FiX size={18} />
+              </div>
+
+              <p className="mt-3 text-sm font-semibold text-rose-500">
+                {postsError}
+              </p>
             </div>
           )}
 
           {/* NO POSTS */}
 
           {!postsError && filteredPosts.length === 0 && (
-            <div className="mx-auto max-w-[650px] rounded-2xl border border-slate-200 bg-white px-5 py-20 text-center shadow-[0_4px_18px_rgba(15,39,71,0.06)]">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-50">
-                <FiCamera size={32} className="text-slate-400" />
+            <div className="mx-auto max-w-[680px] overflow-hidden rounded-[28px] border border-slate-200 bg-white px-5 py-20 text-center shadow-[0_15px_45px_rgba(37,99,235,0.07)]">
+
+              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[28px] bg-gradient-to-br from-blue-50 via-white to-pink-50 text-[#2563EB] shadow-inner">
+                <FiCamera size={38} />
               </div>
 
-              <h2 className="mt-5 text-xl font-bold">No posts yet</h2>
+              <h2 className="mt-7 bg-gradient-to-r from-[#2563EB] to-[#EC4899] bg-clip-text text-2xl font-black text-transparent">
+                No posts yet
+              </h2>
 
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                Be the first to share your story with the Vlogify community.
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">
+                Be the first to share something beautiful with the Vlogify community.
               </p>
 
               <button
                 type="button"
                 onClick={() => navigate("/profile/createpost")}
-                className="mt-6 rounded-xl bg-[#0F2747] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(15,39,71,0.10)] transition hover:bg-[#173B68] active:scale-95"
+                className="mt-7 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#EC4899] px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_25px_rgba(37,99,235,0.20)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(236,72,153,0.20)] active:scale-95"
               >
-                Create Post
+                <span className="flex items-center gap-2">
+                  <FiPlus size={18} />
+                  Create Your First Post
+                </span>
               </button>
             </div>
           )}
 
-          {/* =============================================
-              POST FEED
-          ============================================== */}
+          {/* POST FEED */}
 
-          <div className="mx-auto w-full max-w-[650px] space-y-6">
+          <div className="mx-auto w-full max-w-[680px] space-y-7">
+
             {filteredPosts.map((post) => {
-              const isLiked = likedPosts[post._id] ?? post.likedByMe ?? false;
+              const isLiked =
+                likedPosts[post._id] ?? post.likedByMe ?? false;
 
               const isSaved = savedPosts.includes(post._id);
 
-              const likeCount = post.likeCount ?? post.likes?.length ?? 0;
+              const likeCount =
+                post.likeCount ?? post.likes?.length ?? 0;
 
               const postProfilePicture =
                 post.user?.profilePicture ||
@@ -668,14 +726,15 @@ const Home = () => {
               return (
                 <article
                   key={post._id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_28px_rgba(15,39,71,0.07)] transition-shadow duration-300 hover:shadow-[0_14px_36px_rgba(15,39,71,0.10)]"
+                  className="group overflow-hidden rounded-[26px] border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(37,99,235,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(37,99,235,0.11)]"
                 >
-                  {/* ================================
-                      POST HEADER
-                  ================================= */}
 
-                  <div className="flex items-center justify-between px-4 py-4">
+                  {/* POST HEADER */}
+
+                  <div className="flex items-center justify-between px-4 py-4 sm:px-5">
+
                     <div className="flex items-center gap-3">
+
                       <button
                         type="button"
                         onClick={() => {
@@ -683,19 +742,23 @@ const Home = () => {
                             navigate(`/profile/${post.user._id}`);
                           }
                         }}
-                        className="h-11 w-11 shrink-0 rounded-full border border-slate-200 p-[2px]"
+                        className="relative h-12 w-12 shrink-0 rounded-full bg-gradient-to-tr from-[#2563EB] via-[#8B5CF6] to-[#EC4899] p-[2px]"
                       >
-                        <img
-                          src={postProfilePicture}
-                          alt={post.user?.username || "User"}
-                          className="h-full w-full rounded-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = defaultProfilePicture;
-                          }}
-                        />
+                        <div className="h-full w-full rounded-full bg-white p-[2px]">
+                          <img
+                            src={postProfilePicture}
+                            alt={post.user?.username || "User"}
+                            className="h-full w-full rounded-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                defaultProfilePicture;
+                            }}
+                          />
+                        </div>
                       </button>
 
-                      <div>
+                      <div className="min-w-0">
+
                         <button
                           type="button"
                           onClick={() => {
@@ -703,39 +766,42 @@ const Home = () => {
                               navigate(`/profile/${post.user._id}`);
                             }
                           }}
-                          className="text-sm font-bold text-[#0F172A] hover:underline"
+                          className="block max-w-[200px] truncate text-sm font-extrabold text-[#172033] transition hover:text-[#2563EB]"
                         >
                           {post.user?.username || "Unknown User"}
                         </button>
 
-                        <p className="mt-0.5 text-xs text-slate-400">
-                          {formatDate(post.createdAt)}
-                        </p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#EC4899]" />
+
+                          <p className="text-[11px] font-medium text-slate-400">
+                            {formatDate(post.createdAt)}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
                     <button
                       type="button"
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-blue-50 hover:text-[#2563EB]"
                     >
                       <FiMoreHorizontal size={21} />
                     </button>
                   </div>
 
-                  {/* ================================
-                      SINGLE POST IMAGE / VIDEO
-                  ================================= */}
+                  {/* MEDIA */}
 
                   <button
                     type="button"
                     onClick={() => setSelectedPost(post)}
                     className="block w-full"
                   >
-                    <div className="aspect-square w-full overflow-hidden bg-slate-100">
+                    <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
+
                       {post.mediaType === "video" ? (
                         <video
                           src={post.mediaUrl}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.015]"
                           muted
                           playsInline
                           preload="metadata"
@@ -744,34 +810,41 @@ const Home = () => {
                         <img
                           src={post.mediaUrl}
                           alt={post.caption || "Vlogify post"}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.015]"
                           loading="lazy"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
                           }}
                         />
                       )}
+
+                      {post.mediaType === "video" && (
+                        <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl bg-black/45 text-white backdrop-blur-md">
+                          <FiVideo size={17} />
+                        </div>
+                      )}
                     </div>
                   </button>
 
-                  {/* ================================
-                      ACTIONS
-                  ================================= */}
+                  {/* ACTIONS */}
 
-                  <div className="px-4 pb-4 pt-4">
-                    <div className="flex items-center">
+                  <div className="px-4 pb-5 pt-4 sm:px-5">
+
+                    <div className="flex items-center gap-1">
+
                       {/* LIKE */}
 
                       <button
                         type="button"
                         onClick={() => handleLike(post._id)}
-                        className="mr-4 flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 active:scale-90 ${
+                          isLiked
+                            ? "bg-pink-50 text-[#EC4899]"
+                            : "text-slate-700 hover:bg-pink-50 hover:text-[#EC4899]"
+                        }`}
                       >
                         <FiHeart
-                          size={24}
-                          className={
-                            isLiked ? "text-rose-500" : "text-[#0F172A]"
-                          }
+                          size={23}
                           fill={isLiked ? "currentColor" : "none"}
                         />
                       </button>
@@ -781,9 +854,9 @@ const Home = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedPost(post)}
-                        className="mr-4 flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-700 transition-all hover:bg-blue-50 hover:text-[#2563EB] active:scale-90"
                       >
-                        <FiMessageCircle size={24} />
+                        <FiMessageCircle size={23} />
                       </button>
 
                       {/* SHARE */}
@@ -791,9 +864,9 @@ const Home = () => {
                       <button
                         type="button"
                         onClick={() => handleShare(post)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-700 transition-all hover:bg-blue-50 hover:text-[#2563EB] active:scale-90"
                       >
-                        <FiSend size={23} />
+                        <FiSend size={22} />
                       </button>
 
                       {/* SAVE */}
@@ -801,10 +874,14 @@ const Home = () => {
                       <button
                         type="button"
                         onClick={() => handleSave(post._id)}
-                        className="ml-auto flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-slate-100 active:scale-90"
+                        className={`ml-auto flex h-10 w-10 items-center justify-center rounded-xl transition-all active:scale-90 ${
+                          isSaved
+                            ? "bg-blue-50 text-[#2563EB]"
+                            : "text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]"
+                        }`}
                       >
                         <FiBookmark
-                          size={24}
+                          size={23}
                           fill={isSaved ? "currentColor" : "none"}
                         />
                       </button>
@@ -812,7 +889,7 @@ const Home = () => {
 
                     {/* LIKE COUNT */}
 
-                    <p className="mt-3 text-sm font-bold text-[#0F172A]">
+                    <p className="mt-3 text-sm font-extrabold text-[#172033]">
                       {likeCount.toLocaleString()}{" "}
                       {likeCount === 1 ? "like" : "likes"}
                     </p>
@@ -821,7 +898,7 @@ const Home = () => {
 
                     {post.caption && (
                       <p className="mt-2 text-sm leading-6 text-slate-600">
-                        <span className="font-bold text-[#0F172A]">
+                        <span className="font-extrabold text-[#172033]">
                           {post.user?.username || "User"}
                         </span>{" "}
                         {post.caption}
@@ -839,20 +916,22 @@ const Home = () => {
           BOTTOM NAVIGATION
       ====================================================== */}
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 shadow-[0_-5px_25px_rgba(15,23,42,0.08)] backdrop-blur">
-        <div className="mx-auto flex h-[72px] w-full max-w-[650px] items-center justify-around px-3">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-white/95 shadow-[0_-10px_35px_rgba(37,99,235,0.08)] backdrop-blur-2xl">
+
+        <div className="mx-auto flex h-[78px] w-full max-w-[680px] items-center justify-around px-2">
+
           {/* HOME */}
 
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="group flex flex-col items-center justify-center gap-1"
+            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
           >
-            <div className="flex h-9 w-12 items-center justify-center rounded-xl bg-[#EEF3F8] text-[#0F2747] transition group-hover:bg-[#E2E8F0]">
+            <div className="flex h-10 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-pink-50 text-[#2563EB]">
               <FiHome size={22} />
             </div>
 
-            <span className="text-[10px] font-semibold text-[#0F2747]">
+            <span className="text-[10px] font-bold text-[#2563EB]">
               Home
             </span>
           </button>
@@ -862,13 +941,13 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/reels")}
-            className="group flex flex-col items-center justify-center gap-1"
+            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
           >
-            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-slate-500 transition group-hover:bg-slate-100 group-hover:text-[#0F2747]">
+            <div className="flex h-10 w-12 items-center justify-center rounded-2xl text-slate-400 transition hover:bg-pink-50 hover:text-[#EC4899]">
               <FiVideo size={22} />
             </div>
 
-            <span className="text-[10px] font-medium text-slate-500">
+            <span className="text-[10px] font-semibold text-slate-400 group-hover:text-[#EC4899]">
               Reels
             </span>
           </button>
@@ -878,13 +957,13 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/profile/createpost")}
-            className="group flex flex-col items-center justify-center gap-1"
+            className="group flex min-w-[64px] flex-col items-center justify-center gap-1"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0F2747] text-white shadow-[0_8px_24px_rgba(15,39,71,0.10)] transition group-hover:bg-[#173B68] group-active:scale-95">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#EC4899] text-white shadow-[0_8px_25px_rgba(124,58,237,0.25)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_12px_30px_rgba(236,72,153,0.25)] group-active:scale-95">
               <FiPlus size={25} />
             </div>
 
-            <span className="text-[10px] font-semibold text-[#0F2747]">
+            <span className="text-[10px] font-bold text-[#172554]">
               Create
             </span>
           </button>
@@ -894,13 +973,13 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/search")}
-            className="group flex flex-col items-center justify-center gap-1"
+            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
           >
-            <div className="flex h-9 w-12 items-center justify-center rounded-xl text-slate-500 transition group-hover:bg-slate-100 group-hover:text-[#0F2747]">
+            <div className="flex h-10 w-12 items-center justify-center rounded-2xl text-slate-400 transition hover:bg-blue-50 hover:text-[#2563EB]">
               <FiSearch size={22} />
             </div>
 
-            <span className="text-[10px] font-medium text-slate-500">
+            <span className="text-[10px] font-semibold text-slate-400 group-hover:text-[#2563EB]">
               Search
             </span>
           </button>
@@ -910,20 +989,22 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/profile")}
-            className="group flex flex-col items-center justify-center gap-1"
+            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
           >
-            <div className="flex h-9 w-12 items-center justify-center">
-              <img
-                src={profileImage}
-                alt="Profile"
-                className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 transition group-hover:ring-[#0F2747]"
-                onError={(e) => {
-                  e.currentTarget.src = defaultProfilePicture;
-                }}
-              />
+            <div className="flex h-10 w-12 items-center justify-center">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#EC4899] p-[2px] transition group-hover:scale-105">
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  className="h-full w-full rounded-full border-2 border-white object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = defaultProfilePicture;
+                  }}
+                />
+              </div>
             </div>
 
-            <span className="text-[10px] font-medium text-slate-500">
+            <span className="text-[10px] font-semibold text-slate-400 group-hover:text-[#2563EB]">
               Profile
             </span>
           </button>
@@ -936,40 +1017,57 @@ const Home = () => {
 
       {currentStory && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#08111F]/90 p-3 backdrop-blur-xl sm:p-5"
           onClick={() => setCurrentStory(null)}
         >
+
           <button
             type="button"
             onClick={() => setCurrentStory(null)}
-            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-800 shadow-[0_16px_40px_rgba(15,39,71,0.16)] transition hover:bg-slate-100"
+            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
           >
-            <FiX size={24} />
+            <FiX size={23} />
           </button>
 
           <div
-            className="relative h-[82vh] w-full max-w-[430px] overflow-hidden rounded-2xl bg-black shadow-[0_24px_60px_rgba(15,39,71,0.18)]"
+            className="relative h-[88vh] w-full max-w-[440px] overflow-hidden rounded-[28px] bg-black shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
             onClick={(e) => e.stopPropagation()}
           >
+
             <img
               src={currentStory.post?.mediaUrl || currentStory.image}
               alt={currentStory.username}
               className="h-full w-full object-contain"
             />
 
-            <div className="absolute left-4 top-4 flex items-center gap-3 rounded-full bg-black/50 px-3 py-2 backdrop-blur">
-              <img
-                src={currentStory.image}
-                alt={currentStory.username}
-                className="h-9 w-9 rounded-full border-2 border-white object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = defaultProfilePicture;
-                }}
-              />
+            {/* TOP GRADIENT */}
 
-              <p className="text-sm font-semibold text-white">
-                {currentStory.username}
-              </p>
+            <div className="absolute left-0 right-0 top-0 h-28 bg-gradient-to-b from-black/70 to-transparent" />
+
+            {/* USER */}
+
+            <div className="absolute left-4 top-5 flex items-center gap-3">
+
+              <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#EC4899] p-[2px]">
+                <img
+                  src={currentStory.image}
+                  alt={currentStory.username}
+                  className="h-full w-full rounded-full border-2 border-white object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = defaultProfilePicture;
+                  }}
+                />
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-white">
+                  {currentStory.username}
+                </p>
+
+                <p className="text-[10px] text-white/70">
+                  Vlogify story
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -981,68 +1079,79 @@ const Home = () => {
 
       {selectedPost && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#08111F]/80 p-3 backdrop-blur-xl sm:p-5"
           onClick={() => setSelectedPost(null)}
         >
+
           <div
-            className="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_rgba(15,39,71,0.18)] lg:flex-row"
+            className="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/20 bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] lg:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
+
             {/* CLOSE */}
 
             <button
               type="button"
               onClick={() => setSelectedPost(null)}
-              className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition hover:bg-slate-100"
+              className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/95 text-slate-700 shadow-xl transition hover:bg-pink-50 hover:text-pink-500"
             >
               <FiX size={22} />
             </button>
 
             {/* MEDIA */}
 
-            <div className="flex max-h-[65vh] flex-1 items-center justify-center bg-slate-100 lg:max-h-[94vh]">
-              {selectedPost.mediaType === "video" ? (
-                <video
-                  src={selectedPost.mediaUrl}
-                  controls
-                  autoPlay
-                  className="max-h-[65vh] max-w-full object-contain lg:max-h-[94vh]"
-                />
-              ) : (
-                <img
-                  src={selectedPost.mediaUrl}
-                  alt={selectedPost.caption || "Post"}
-                  className="max-h-[65vh] max-w-full object-contain lg:max-h-[94vh]"
-                />
-              )}
+            <div className="relative flex max-h-[62vh] flex-1 items-center justify-center overflow-hidden bg-[#F1F5FF] lg:max-h-[94vh]">
+
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-pink-50 opacity-70" />
+
+              <div className="relative z-10 flex h-full w-full items-center justify-center">
+                {selectedPost.mediaType === "video" ? (
+                  <video
+                    src={selectedPost.mediaUrl}
+                    controls
+                    autoPlay
+                    className="max-h-[62vh] max-w-full object-contain lg:max-h-[94vh]"
+                  />
+                ) : (
+                  <img
+                    src={selectedPost.mediaUrl}
+                    alt={selectedPost.caption || "Post"}
+                    className="max-h-[62vh] max-w-full object-contain lg:max-h-[94vh]"
+                  />
+                )}
+              </div>
             </div>
 
             {/* DETAILS */}
 
-            <div className="flex w-full flex-col bg-white lg:w-[390px]">
+            <div className="flex w-full flex-col bg-white lg:w-[410px]">
+
               {/* USER */}
 
-              <div className="flex items-center gap-3 border-b border-slate-200 p-5">
-                <img
-                  src={
-                    selectedPost.user?.profilePicture ||
-                    selectedPost.user?.profilePic ||
-                    selectedPost.user?.profileImage ||
-                    defaultProfilePicture
-                  }
-                  alt={selectedPost.user?.username || "User"}
-                  className="h-11 w-11 rounded-full border border-slate-200 object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = defaultProfilePicture;
-                  }}
-                />
+              <div className="flex items-center gap-3 border-b border-slate-100 p-5">
+
+                <div className="h-11 w-11 rounded-full bg-gradient-to-tr from-[#2563EB] via-[#8B5CF6] to-[#EC4899] p-[2px]">
+                  <img
+                    src={
+                      selectedPost.user?.profilePicture ||
+                      selectedPost.user?.profilePic ||
+                      selectedPost.user?.profileImage ||
+                      defaultProfilePicture
+                    }
+                    alt={selectedPost.user?.username || "User"}
+                    className="h-full w-full rounded-full border-2 border-white object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultProfilePicture;
+                    }}
+                  />
+                </div>
 
                 <div>
-                  <p className="text-sm font-bold text-[#0F172A]">
+                  <p className="text-sm font-extrabold text-[#172033]">
                     {selectedPost.user?.username || "Unknown User"}
                   </p>
 
-                  <p className="mt-0.5 text-xs text-slate-400">
+                  <p className="mt-0.5 text-[11px] font-medium text-slate-400">
                     {formatDate(selectedPost.createdAt)}
                   </p>
                 </div>
@@ -1051,36 +1160,46 @@ const Home = () => {
               {/* CAPTION */}
 
               <div className="flex-1 overflow-y-auto p-5">
-                {selectedPost.caption && (
+
+                {selectedPost.caption ? (
                   <p className="text-sm leading-7 text-slate-600">
-                    <span className="font-bold text-[#0F172A]">
+                    <span className="font-extrabold text-[#172033]">
                       {selectedPost.user?.username || "User"}
                     </span>{" "}
                     {selectedPost.caption}
                   </p>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-sm text-slate-400">
+                      No caption for this post.
+                    </p>
+                  </div>
                 )}
               </div>
 
               {/* ACTIONS */}
 
-              <div className="border-t border-slate-200 p-5">
-                <div className="flex items-center gap-3">
+              <div className="border-t border-slate-100 p-5">
+
+                <div className="flex items-center gap-2">
+
                   {/* LIKE */}
 
                   <button
                     type="button"
                     onClick={() => handleLike(selectedPost._id)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+                      (likedPosts[selectedPost._id] ??
+                        selectedPost.likedByMe)
+                        ? "bg-pink-50 text-[#EC4899]"
+                        : "text-slate-700 hover:bg-pink-50 hover:text-[#EC4899]"
+                    }`}
                   >
                     <FiHeart
-                      size={25}
-                      className={
-                        (likedPosts[selectedPost._id] ?? selectedPost.likedByMe)
-                          ? "text-rose-500"
-                          : "text-[#0F172A]"
-                      }
+                      size={24}
                       fill={
-                        (likedPosts[selectedPost._id] ?? selectedPost.likedByMe)
+                        (likedPosts[selectedPost._id] ??
+                          selectedPost.likedByMe)
                           ? "currentColor"
                           : "none"
                       }
@@ -1091,9 +1210,9 @@ const Home = () => {
 
                   <button
                     type="button"
-                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-slate-700 transition hover:bg-blue-50 hover:text-[#2563EB]"
                   >
-                    <FiMessageCircle size={25} />
+                    <FiMessageCircle size={24} />
                   </button>
 
                   {/* SHARE */}
@@ -1101,9 +1220,9 @@ const Home = () => {
                   <button
                     type="button"
                     onClick={() => handleShare(selectedPost)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-slate-700 transition hover:bg-blue-50 hover:text-[#2563EB]"
                   >
-                    <FiSend size={24} />
+                    <FiSend size={23} />
                   </button>
 
                   {/* SAVE */}
@@ -1111,10 +1230,14 @@ const Home = () => {
                   <button
                     type="button"
                     onClick={() => handleSave(selectedPost._id)}
-                    className="ml-auto flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-slate-100"
+                    className={`ml-auto flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+                      savedPosts.includes(selectedPost._id)
+                        ? "bg-blue-50 text-[#2563EB]"
+                        : "text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]"
+                    }`}
                   >
                     <FiBookmark
-                      size={25}
+                      size={24}
                       fill={
                         savedPosts.includes(selectedPost._id)
                           ? "currentColor"
@@ -1126,7 +1249,7 @@ const Home = () => {
 
                 {/* LIKES */}
 
-                <p className="mt-4 text-sm font-bold text-[#0F172A]">
+                <p className="mt-4 text-sm font-extrabold text-[#172033]">
                   {(
                     selectedPost.likeCount ??
                     selectedPost.likes?.length ??
@@ -1141,16 +1264,17 @@ const Home = () => {
 
                 {/* COMMENT */}
 
-                <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="mt-4 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5 transition focus-within:border-blue-200 focus-within:bg-white focus-within:shadow-[0_5px_20px_rgba(37,99,235,0.08)]">
+
                   <input
                     type="text"
                     placeholder="Add a comment..."
-                    className="flex-1 bg-transparent px-1 py-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                    className="flex-1 bg-transparent px-3 py-2.5 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
                   />
 
                   <button
                     type="button"
-                    className="rounded-lg px-2 py-1 text-sm font-bold text-[#0F2747] transition hover:bg-white"
+                    className="rounded-xl bg-gradient-to-r from-[#2563EB] to-[#EC4899] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:shadow-md active:scale-95"
                   >
                     Post
                   </button>

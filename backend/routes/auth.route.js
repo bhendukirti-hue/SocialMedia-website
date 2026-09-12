@@ -37,7 +37,24 @@ router.post(
     AuthController.login
 );
 
+// ==========================================
+// FORGOT PASSWORD
+// ==========================================
 
+router.post(
+    "/forgot-password",
+    AuthController.forgotPassword
+);
+
+
+// ==========================================
+// RESET PASSWORD
+// ==========================================
+
+router.post(
+    "/reset-password/:token",
+    AuthController.resetPassword
+);
 // ==========================================
 // VERIFY TOKEN
 // ==========================================

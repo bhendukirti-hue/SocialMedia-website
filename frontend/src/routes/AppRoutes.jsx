@@ -45,6 +45,8 @@ import Messages from "../pages/messages/Messages";
 // ==========================================
 
 import PrivateRouting from "../components/ProtectedRoute";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 // ==========================================
 // ROUTES
@@ -69,6 +71,14 @@ export const routes = createBrowserRouter([
   {
     path: "/verify-otp",
     element: <VerifyOTP />,
+  },
+  {
+    path:"/forgot-password",
+    element:<ForgotPassword/>
+  },
+  {
+    path:"/reset-password/:token",
+    element:<ResetPassword/>
   },
 
   // =====================================================
