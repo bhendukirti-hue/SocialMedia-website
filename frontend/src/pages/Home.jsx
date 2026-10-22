@@ -37,10 +37,11 @@ const Home = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [savedPosts, setSavedPosts] = useState([]);
   const [currentStory, setCurrentStory] = useState(null);
-  const [searchText, setSearchText] = useState("");
   const [likedPosts, setLikedPosts] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const [commentText, setCommentText] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
 
   // ==========================================
   // DEFAULT PROFILE IMAGE
@@ -48,10 +49,6 @@ const Home = () => {
 
   const defaultProfilePicture =
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkoB0e7_DXKsiZ1Uu5lUCkOjN01NfE9689KEqAOmYNMQ&s=10";
-
-  // ==========================================
-  // CURRENT USER IMAGE
-  // ==========================================
 
   const profileImage =
     currentUser?.profilePicture ||
@@ -73,11 +70,7 @@ const Home = () => {
 
       const response = await axios.get(`${API_URL}/auth/verify-token`, {
         withCredentials: true,
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {},
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       console.log("CURRENT USER:", response.data);
@@ -112,11 +105,7 @@ const Home = () => {
 
       const response = await axios.get(`${API_URL}/messages/conversations`, {
         withCredentials: true,
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {},
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (response.data?.success) {
@@ -148,16 +137,13 @@ const Home = () => {
     if (!token) return;
 
     const socket = io("http://localhost:8808", {
-      auth: {
-        token,
-      },
+      auth: { token },
     });
 
     const handleNewMessage = (newMessage) => {
       if (!newMessage) return;
 
       const senderId = newMessage.sender?._id || newMessage.sender;
-
       const currentUserId = currentUser?._id || currentUser?.id;
 
       if (senderId?.toString() === currentUserId?.toString()) {
@@ -192,11 +178,7 @@ const Home = () => {
 
       const response = await axios.get(`${API_URL}/posts/all-posts`, {
         withCredentials: true,
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {},
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       console.log("ALL POSTS:", response.data);
@@ -241,11 +223,7 @@ const Home = () => {
         {},
         {
           withCredentials: true,
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`,
-              }
-            : {},
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         },
       );
 
@@ -266,11 +244,7 @@ const Home = () => {
               return post;
             }
 
-            return {
-              ...post,
-              likeCount,
-              likedByMe: liked,
-            };
+            return { ...post, likeCount, likedByMe: liked };
           }),
         );
 
@@ -279,15 +253,45 @@ const Home = () => {
             return currentPost;
           }
 
-          return {
-            ...currentPost,
-            likeCount,
-            likedByMe: liked,
-          };
+          return { ...currentPost, likeCount, likedByMe: liked };
         });
       }
     } catch (error) {
       console.error("Like error:", error.response?.data || error.message);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!commentText.trim() || !selectedPost?._id) return;
+
+    try {
+      setCommentLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      // IMPORTANT:
+      // We will put your actual comment API URL here
+      const response = await axios.post(
+        `${API_URL}/comments/${selectedPost._id}`,
+        {
+          text: commentText.trim(),
+        },
+        {
+          withCredentials: true,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
+
+      console.log("COMMENT RESPONSE:", response.data);
+
+      setCommentText("");
+    } catch (error) {
+      console.error(
+        "ADD COMMENT ERROR:",
+        error.response?.data || error.message,
+      );
+    } finally {
+      setCommentLoading(false);
     }
   };
 
@@ -361,26 +365,6 @@ const Home = () => {
   }, [posts]);
 
   // ==========================================
-  // SEARCH
-  // ==========================================
-
-  const filteredPosts = useMemo(() => {
-    if (!searchText.trim()) {
-      return posts;
-    }
-
-    const search = searchText.toLowerCase();
-
-    return posts.filter((post) => {
-      const username = post.user?.username?.toLowerCase() || "";
-
-      const caption = post.caption?.toLowerCase() || "";
-
-      return username.includes(search) || caption.includes(search);
-    });
-  }, [posts, searchText]);
-
-  // ==========================================
   // FORMAT DATE
   // ==========================================
 
@@ -392,31 +376,27 @@ const Home = () => {
 
     const difference = Math.floor((now - created) / 1000);
 
-    if (difference < 60) {
-      return `${difference}s`;
-    }
-
-    if (difference < 3600) {
-      return `${Math.floor(difference / 60)}m`;
-    }
-
-    if (difference < 86400) {
-      return `${Math.floor(difference / 3600)}h`;
-    }
-
-    if (difference < 604800) {
-      return `${Math.floor(difference / 86400)}d`;
-    }
+    if (difference < 60) return `${difference}s`;
+    if (difference < 3600) return `${Math.floor(difference / 60)}m`;
+    if (difference < 86400) return `${Math.floor(difference / 3600)}h`;
+    if (difference < 604800) return `${Math.floor(difference / 86400)}d`;
 
     return created.toLocaleDateString();
   };
 
-  // ==========================================
-  // OPEN STORY
-  // ==========================================
-
   const openStory = (story) => {
     setCurrentStory(story);
+  };
+
+  // ==========================================
+  // SMALL UI HELPERS (presentation only)
+  // ==========================================
+
+  const iconBtn =
+    "flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition duration-200 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-90";
+
+  const avatarFallback = (e) => {
+    e.currentTarget.src = defaultProfilePicture;
   };
 
   // ==========================================
@@ -425,21 +405,18 @@ const Home = () => {
 
   if (loadingPosts) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFF]">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="relative mx-auto h-14 w-14">
-            <div className="absolute inset-0 rounded-full border-4 border-blue-100" />
-
-            <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[#2563EB] border-r-[#EC4899]" />
+          <div className="relative mx-auto h-12 w-12">
+            <div className="absolute inset-0 rounded-full border-[3px] border-blue-100" />
+            <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-transparent border-t-blue-600 border-r-pink-500" />
           </div>
 
-          <h2 className="mt-5 text-xl font-extrabold tracking-tight text-[#172554]">
-            Vlogify
+          <h2 className="mt-5 bg-gradient-to-r from-blue-600 to-pink-500 bg-clip-text text-2xl font-black tracking-tight text-transparent">
+            Pixora 
           </h2>
 
-          <p className="mt-1 text-sm font-medium text-slate-400">
-            Loading your feed...
-          </p>
+          <p className="mt-1 text-sm text-slate-400">Loading your feed…</p>
         </div>
       </div>
     );
@@ -450,75 +427,56 @@ const Home = () => {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-[#F7F9FF] text-[#172033] selection:bg-pink-100 selection:text-pink-700">
-
+    <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-pink-100 selection:text-pink-700">
       {/* =====================================================
-          TOP HEADER
+          HEADER
       ====================================================== */}
 
-      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 shadow-[0_4px_30px_rgba(37,99,235,0.05)] backdrop-blur-2xl">
-        <div className="mx-auto flex h-[74px] w-full max-w-[1150px] items-center justify-between px-4 sm:px-6">
-
-          {/* CREATE */}
-
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur-xl">
+        <div className="relative mx-auto flex h-16 w-full max-w-[640px] items-center justify-between px-4">
           <button
             type="button"
             onClick={() => navigate("/profile/createpost")}
-            className="group flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-pink-50 text-[#2563EB] shadow-[0_6px_20px_rgba(37,99,235,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-pink-200 hover:text-pink-500 hover:shadow-[0_10px_25px_rgba(236,72,153,0.12)] active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-blue-600 transition hover:border-blue-200 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-95"
             aria-label="Create post"
             title="Create post"
           >
-            <FiPlus
-              size={24}
-              className="transition-transform duration-300 group-hover:rotate-90"
-            />
+            <FiPlus size={22} />
           </button>
-
-          {/* LOGO */}
 
           <Link
             to="/"
-            className="absolute left-1/2 -translate-x-1/2"
+            className="absolute left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-pink-500 bg-clip-text text-[26px] font-black tracking-tight text-transparent"
           >
-            <span className="bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#EC4899] bg-clip-text text-[29px] font-black tracking-[-0.055em] text-transparent">
-              Vlogify
-            </span>
+            Pixora 
           </Link>
 
-          {/* RIGHT ACTIONS */}
-
-          <div className="flex items-center gap-2">
-
-            {/* MESSAGES */}
-
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => navigate("/messages")}
-              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-[#2563EB] shadow-[0_6px_20px_rgba(37,99,235,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 active:scale-95"
+              className={`${iconBtn} relative`}
               aria-label="Messages"
               title="Messages"
             >
               <FiMessageCircle size={22} />
 
               {unreadMessageCount > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full bg-gradient-to-r from-[#EC4899] to-[#DB2777] px-1 text-[10px] font-extrabold text-white shadow-[0_4px_12px_rgba(236,72,153,0.35)] ring-2 ring-white">
+                <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
                   {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
                 </span>
               )}
             </button>
 
-            {/* NOTIFICATIONS */}
-
             <button
               type="button"
               onClick={() => navigate("/notifications")}
-              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-[#EC4899] shadow-[0_6px_20px_rgba(236,72,153,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-pink-200 hover:bg-pink-50 active:scale-95"
+              className={`${iconBtn} relative hover:bg-pink-50 hover:text-pink-500`}
               aria-label="Notifications"
               title="Notifications"
             >
               <FiHeart size={22} />
-
-              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-[#2563EB] ring-2 ring-white" />
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-pink-500 ring-2 ring-white" />
             </button>
           </div>
         </div>
@@ -528,129 +486,66 @@ const Home = () => {
           MAIN
       ====================================================== */}
 
-      <main className="mx-auto w-full max-w-[1150px] px-4 pb-32 sm:px-6">
+      <main className="mx-auto w-full max-w-[640px] px-4 pb-32 pt-5">
+        {/* STORIES */}
 
-        {/* =================================================
-            SEARCH
-        ================================================== */}
+        <section
+          aria-label="Stories"
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm"
+        >
+          <div className="scrollbar-hide flex gap-4 overflow-x-auto">
+            {/* YOUR STORY */}
 
-        <div className="mx-auto max-w-[680px] pt-7">
-
-          <div className="group relative flex h-[54px] items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(37,99,235,0.06)] transition-all duration-300 focus-within:border-blue-200 focus-within:shadow-[0_10px_35px_rgba(37,99,235,0.10)]">
-
-            <div className="ml-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-pink-50 text-[#2563EB]">
-              <FiSearch size={19} />
-            </div>
-
-            <input
-              type="text"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search people, posts or captions..."
-              className="h-full w-full bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
-            />
-
-            {searchText && (
-              <button
-                type="button"
-                onClick={() => setSearchText("")}
-                className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-pink-50 hover:text-pink-500"
-                aria-label="Clear search"
-              >
-                <FiX size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* =================================================
-            STORIES
-        ================================================== */}
-
-        <section className="mx-auto mt-6 max-w-[680px]">
-
-          <div className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_10px_35px_rgba(37,99,235,0.06)] sm:p-5">
-
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-extrabold tracking-tight text-[#172554]">
-                  Stories
-                </h2>
-
-                <p className="mt-0.5 text-[11px] font-medium text-slate-400">
-                  See what your community is sharing
-                </p>
-              </div>
-
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-600">
-                {stories.length + 1}
-              </span>
-            </div>
-
-            <div className="scrollbar-hide flex gap-5 overflow-x-auto pb-1">
-
-              {/* YOUR STORY */}
-
-              <button
-                type="button"
-                onClick={() => navigate("/profile/createpost")}
-                className="group w-[72px] shrink-0 text-center"
-              >
-                <div className="relative mx-auto h-[66px] w-[66px]">
-
-                  <div className="h-full w-full rounded-full bg-gradient-to-tr from-[#2563EB] via-[#7C3AED] to-[#EC4899] p-[2px] shadow-[0_5px_18px_rgba(236,72,153,0.18)]">
-
-                    <div className="h-full w-full rounded-full bg-white p-[3px]">
-                      <img
-                        src={profileImage}
-                        alt="Your story"
-                        className="h-full w-full rounded-full object-cover transition duration-300 group-hover:scale-105"
-                        onError={(e) => {
-                          e.currentTarget.src = defaultProfilePicture;
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <span className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gradient-to-r from-[#2563EB] to-[#EC4899] text-white shadow-md">
-                    <FiPlus size={12} />
-                  </span>
+            <button
+              type="button"
+              onClick={() => navigate("/profile/createpost")}
+              className="group w-[70px] shrink-0 text-center focus:outline-none"
+            >
+              <div className="relative mx-auto h-[66px] w-[66px]">
+                <div className="h-full w-full rounded-full border-2 border-dashed border-blue-300 p-[3px] transition group-hover:border-blue-500">
+                  <img
+                    src={profileImage}
+                    alt="Your story"
+                    className="h-full w-full rounded-full object-cover"
+                    onError={avatarFallback}
+                  />
                 </div>
 
-                <p className="mt-2 truncate text-[11px] font-bold text-slate-600">
-                  Your story
+                <span className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-white">
+                  <FiPlus size={13} />
+                </span>
+              </div>
+
+              <p className="mt-2 truncate text-[11px] font-semibold text-slate-500">
+                Your story
+              </p>
+            </button>
+
+            {/* OTHER STORIES */}
+
+            {stories.map((story, index) => (
+              <button
+                type="button"
+                key={story.id || index}
+                onClick={() => openStory(story)}
+                className="group w-[70px] shrink-0 text-center focus:outline-none"
+              >
+                <div className="mx-auto h-[66px] w-[66px] rounded-full bg-gradient-to-tr from-blue-600 via-violet-500 to-pink-500 p-[2.5px] transition group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-blue-400">
+                  <div className="h-full w-full rounded-full bg-white p-[2.5px]">
+                    <img
+                      src={story.image}
+                      alt={story.username}
+                      className="h-full w-full rounded-full object-cover"
+                      onError={avatarFallback}
+                    />
+                  </div>
+                </div>
+
+                <p className="mt-2 truncate text-[11px] font-semibold text-slate-700">
+                  {story.username}
                 </p>
               </button>
-
-              {/* OTHER STORIES */}
-
-              {stories.map((story, index) => (
-                <button
-                  type="button"
-                  key={story.id || index}
-                  onClick={() => openStory(story)}
-                  className="group w-[72px] shrink-0 text-center"
-                >
-                  <div className="mx-auto h-[66px] w-[66px] rounded-full bg-gradient-to-tr from-[#2563EB] via-[#8B5CF6] to-[#EC4899] p-[2px] shadow-[0_5px_18px_rgba(37,99,235,0.12)]">
-
-                    <div className="h-full w-full rounded-full bg-white p-[3px]">
-                      <img
-                        src={story.image}
-                        alt={story.username}
-                        className="h-full w-full rounded-full object-cover transition duration-300 group-hover:scale-105"
-                        onError={(e) => {
-                          e.currentTarget.src = defaultProfilePicture;
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <p className="mt-2 truncate text-[11px] font-semibold text-slate-600">
-                    {story.username}
-                  </p>
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </section>
 
@@ -658,64 +553,70 @@ const Home = () => {
             FEED
         ================================================== */}
 
-        <section className="mt-7">
-
+        <section className="mt-5">
           {/* ERROR */}
 
           {postsError && (
-            <div className="mx-auto max-w-[680px] rounded-2xl border border-rose-100 bg-gradient-to-r from-rose-50 to-pink-50 p-5 text-center shadow-sm">
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-rose-500 shadow-sm">
+            <div
+              role="alert"
+              className="flex items-center gap-3 rounded-2xl border border-pink-200 bg-pink-50 p-4"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-pink-500">
                 <FiX size={18} />
               </div>
 
-              <p className="mt-3 text-sm font-semibold text-rose-500">
-                {postsError}
-              </p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-pink-700">
+                  {postsError}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fetchAllPosts}
+                className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-pink-600 shadow-sm transition hover:bg-pink-100"
+              >
+                Try again
+              </button>
             </div>
           )}
 
           {/* NO POSTS */}
 
-          {!postsError && filteredPosts.length === 0 && (
-            <div className="mx-auto max-w-[680px] overflow-hidden rounded-[28px] border border-slate-200 bg-white px-5 py-20 text-center shadow-[0_15px_45px_rgba(37,99,235,0.07)]">
-
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[28px] bg-gradient-to-br from-blue-50 via-white to-pink-50 text-[#2563EB] shadow-inner">
-                <FiCamera size={38} />
+          {!postsError && posts.length === 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <FiCamera size={32} />
               </div>
 
-              <h2 className="mt-7 bg-gradient-to-r from-[#2563EB] to-[#EC4899] bg-clip-text text-2xl font-black text-transparent">
+              <h2 className="mt-6 text-xl font-extrabold text-slate-900">
                 No posts yet
               </h2>
 
-              <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">
-                Be the first to share something beautiful with the Vlogify community.
+              <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-slate-500">
+                Share a photo or video to start your feed.
               </p>
 
               <button
                 type="button"
                 onClick={() => navigate("/profile/createpost")}
-                className="mt-7 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#EC4899] px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_25px_rgba(37,99,235,0.20)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(236,72,153,0.20)] active:scale-95"
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95"
               >
-                <span className="flex items-center gap-2">
-                  <FiPlus size={18} />
-                  Create Your First Post
-                </span>
+                <FiPlus size={18} />
+                Create your first post
               </button>
             </div>
           )}
 
           {/* POST FEED */}
 
-          <div className="mx-auto w-full max-w-[680px] space-y-7">
-
-            {filteredPosts.map((post) => {
-              const isLiked =
-                likedPosts[post._id] ?? post.likedByMe ?? false;
+          <div className="space-y-5">
+            {posts.map((post) => {
+              const isLiked = likedPosts[post._id] ?? post.likedByMe ?? false;
 
               const isSaved = savedPosts.includes(post._id);
 
-              const likeCount =
-                post.likeCount ?? post.likes?.length ?? 0;
+              const likeCount = post.likeCount ?? post.likes?.length ?? 0;
 
               const postProfilePicture =
                 post.user?.profilePicture ||
@@ -726,15 +627,12 @@ const Home = () => {
               return (
                 <article
                   key={post._id}
-                  className="group overflow-hidden rounded-[26px] border border-slate-200/80 bg-white shadow-[0_12px_40px_rgba(37,99,235,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(37,99,235,0.11)]"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
                 >
-
                   {/* POST HEADER */}
 
-                  <div className="flex items-center justify-between px-4 py-4 sm:px-5">
-
-                    <div className="flex items-center gap-3">
-
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <button
                         type="button"
                         onClick={() => {
@@ -742,23 +640,19 @@ const Home = () => {
                             navigate(`/profile/${post.user._id}`);
                           }
                         }}
-                        className="relative h-12 w-12 shrink-0 rounded-full bg-gradient-to-tr from-[#2563EB] via-[#8B5CF6] to-[#EC4899] p-[2px]"
+                        className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-tr from-blue-600 to-pink-500 p-[2px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                       >
-                        <div className="h-full w-full rounded-full bg-white p-[2px]">
+                        <span className="block h-full w-full rounded-full bg-white p-[2px]">
                           <img
                             src={postProfilePicture}
                             alt={post.user?.username || "User"}
                             className="h-full w-full rounded-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                defaultProfilePicture;
-                            }}
+                            onError={avatarFallback}
                           />
-                        </div>
+                        </span>
                       </button>
 
                       <div className="min-w-0">
-
                         <button
                           type="button"
                           onClick={() => {
@@ -766,26 +660,23 @@ const Home = () => {
                               navigate(`/profile/${post.user._id}`);
                             }
                           }}
-                          className="block max-w-[200px] truncate text-sm font-extrabold text-[#172033] transition hover:text-[#2563EB]"
+                          className="block max-w-[220px] truncate text-sm font-bold text-slate-900 transition hover:text-blue-600"
                         >
                           {post.user?.username || "Unknown User"}
                         </button>
 
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#EC4899]" />
-
-                          <p className="text-[11px] font-medium text-slate-400">
-                            {formatDate(post.createdAt)}
-                          </p>
-                        </div>
+                        <p className="text-xs text-slate-400">
+                          {formatDate(post.createdAt)}
+                        </p>
                       </div>
                     </div>
 
                     <button
                       type="button"
-                      className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-blue-50 hover:text-[#2563EB]"
+                      className={iconBtn}
+                      aria-label="More options"
                     >
-                      <FiMoreHorizontal size={21} />
+                      <FiMoreHorizontal size={20} />
                     </button>
                   </div>
 
@@ -793,15 +684,18 @@ const Home = () => {
 
                   <button
                     type="button"
-                    onClick={() => setSelectedPost(post)}
-                    className="block w-full"
+                    onClick={() => {
+                      setSelectedPost(post);
+                      setCommentText("");
+                    }}
+                    className="block w-full focus:outline-none"
+                    aria-label="Open post"
                   >
                     <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-
                       {post.mediaType === "video" ? (
                         <video
                           src={post.mediaUrl}
-                          className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.015]"
+                          className="h-full w-full object-cover"
                           muted
                           playsInline
                           preload="metadata"
@@ -810,7 +704,7 @@ const Home = () => {
                         <img
                           src={post.mediaUrl}
                           alt={post.caption || "Vlogify post"}
-                          className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.015]"
+                          className="h-full w-full object-cover"
                           loading="lazy"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
@@ -819,8 +713,8 @@ const Home = () => {
                       )}
 
                       {post.mediaType === "video" && (
-                        <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl bg-black/45 text-white backdrop-blur-md">
-                          <FiVideo size={17} />
+                        <div className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/60 text-white backdrop-blur">
+                          <FiVideo size={15} />
                         </div>
                       )}
                     </div>
@@ -828,19 +722,17 @@ const Home = () => {
 
                   {/* ACTIONS */}
 
-                  <div className="px-4 pb-5 pt-4 sm:px-5">
-
-                    <div className="flex items-center gap-1">
-
-                      {/* LIKE */}
-
+                  <div className="px-3 pb-4 pt-2">
+                    <div className="flex items-center">
                       <button
                         type="button"
                         onClick={() => handleLike(post._id)}
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 active:scale-90 ${
+                        aria-label="Like"
+                        aria-pressed={isLiked}
+                        className={`${iconBtn} ${
                           isLiked
-                            ? "bg-pink-50 text-[#EC4899]"
-                            : "text-slate-700 hover:bg-pink-50 hover:text-[#EC4899]"
+                            ? "text-pink-500 hover:bg-pink-50 hover:text-pink-500"
+                            : "hover:bg-pink-50 hover:text-pink-500"
                         }`}
                       >
                         <FiHeart
@@ -849,35 +741,34 @@ const Home = () => {
                         />
                       </button>
 
-                      {/* COMMENT */}
-
                       <button
                         type="button"
-                        onClick={() => setSelectedPost(post)}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-700 transition-all hover:bg-blue-50 hover:text-[#2563EB] active:scale-90"
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setCommentText("");
+                        }}
+                        aria-label="Comment"
+                        className={iconBtn}
                       >
                         <FiMessageCircle size={23} />
                       </button>
 
-                      {/* SHARE */}
-
                       <button
                         type="button"
                         onClick={() => handleShare(post)}
-                        className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-700 transition-all hover:bg-blue-50 hover:text-[#2563EB] active:scale-90"
+                        aria-label="Share"
+                        className={iconBtn}
                       >
                         <FiSend size={22} />
                       </button>
 
-                      {/* SAVE */}
-
                       <button
                         type="button"
                         onClick={() => handleSave(post._id)}
-                        className={`ml-auto flex h-10 w-10 items-center justify-center rounded-xl transition-all active:scale-90 ${
-                          isSaved
-                            ? "bg-blue-50 text-[#2563EB]"
-                            : "text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]"
+                        aria-label="Save"
+                        aria-pressed={isSaved}
+                        className={`${iconBtn} ml-auto ${
+                          isSaved ? "text-blue-600" : ""
                         }`}
                       >
                         <FiBookmark
@@ -887,23 +778,21 @@ const Home = () => {
                       </button>
                     </div>
 
-                    {/* LIKE COUNT */}
-
-                    <p className="mt-3 text-sm font-extrabold text-[#172033]">
-                      {likeCount.toLocaleString()}{" "}
-                      {likeCount === 1 ? "like" : "likes"}
-                    </p>
-
-                    {/* CAPTION */}
-
-                    {post.caption && (
-                      <p className="mt-2 text-sm leading-6 text-slate-600">
-                        <span className="font-extrabold text-[#172033]">
-                          {post.user?.username || "User"}
-                        </span>{" "}
-                        {post.caption}
+                    <div className="px-2">
+                      <p className="mt-1 text-sm font-bold text-slate-900">
+                        {likeCount.toLocaleString()}{" "}
+                        {likeCount === 1 ? "like" : "likes"}
                       </p>
-                    )}
+
+                      {post.caption && (
+                        <p className="mt-1 text-sm leading-6 text-slate-600">
+                          <span className="font-bold text-slate-900">
+                            {post.user?.username || "User"}
+                          </span>{" "}
+                          {post.caption}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </article>
               );
@@ -916,24 +805,18 @@ const Home = () => {
           BOTTOM NAVIGATION
       ====================================================== */}
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 bg-white/95 shadow-[0_-10px_35px_rgba(37,99,235,0.08)] backdrop-blur-2xl">
-
-        <div className="mx-auto flex h-[78px] w-full max-w-[680px] items-center justify-around px-2">
-
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-[68px] w-full max-w-[640px] items-center justify-around px-2">
           {/* HOME */}
 
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
+            className="flex min-w-[56px] flex-col items-center gap-1 text-blue-600"
           >
-            <div className="flex h-10 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-pink-50 text-[#2563EB]">
-              <FiHome size={22} />
-            </div>
-
-            <span className="text-[10px] font-bold text-[#2563EB]">
-              Home
-            </span>
+            <FiHome size={22} />
+            <span className="text-[10px] font-bold">Home</span>
+            <span className="h-1 w-1 rounded-full bg-blue-600" />
           </button>
 
           {/* REELS */}
@@ -941,15 +824,11 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/reels")}
-            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
+            className="flex min-w-[56px] flex-col items-center gap-1 text-slate-400 transition hover:text-pink-500"
           >
-            <div className="flex h-10 w-12 items-center justify-center rounded-2xl text-slate-400 transition hover:bg-pink-50 hover:text-[#EC4899]">
-              <FiVideo size={22} />
-            </div>
-
-            <span className="text-[10px] font-semibold text-slate-400 group-hover:text-[#EC4899]">
-              Reels
-            </span>
+            <FiVideo size={22} />
+            <span className="text-[10px] font-semibold">Reels</span>
+            <span className="h-1 w-1" />
           </button>
 
           {/* CREATE */}
@@ -957,15 +836,10 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/profile/createpost")}
-            className="group flex min-w-[64px] flex-col items-center justify-center gap-1"
+            aria-label="Create"
+            className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-pink-500 text-white shadow-lg shadow-pink-500/25 ring-4 ring-white transition hover:scale-105 active:scale-95"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-gradient-to-br from-[#2563EB] via-[#7C3AED] to-[#EC4899] text-white shadow-[0_8px_25px_rgba(124,58,237,0.25)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_12px_30px_rgba(236,72,153,0.25)] group-active:scale-95">
-              <FiPlus size={25} />
-            </div>
-
-            <span className="text-[10px] font-bold text-[#172554]">
-              Create
-            </span>
+            <FiPlus size={26} />
           </button>
 
           {/* SEARCH */}
@@ -973,15 +847,11 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/search")}
-            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
+            className="flex min-w-[56px] flex-col items-center gap-1 text-slate-400 transition hover:text-blue-600"
           >
-            <div className="flex h-10 w-12 items-center justify-center rounded-2xl text-slate-400 transition hover:bg-blue-50 hover:text-[#2563EB]">
-              <FiSearch size={22} />
-            </div>
-
-            <span className="text-[10px] font-semibold text-slate-400 group-hover:text-[#2563EB]">
-              Search
-            </span>
+            <FiSearch size={22} />
+            <span className="text-[10px] font-semibold">Search</span>
+            <span className="h-1 w-1" />
           </button>
 
           {/* PROFILE */}
@@ -989,24 +859,18 @@ const Home = () => {
           <button
             type="button"
             onClick={() => navigate("/profile")}
-            className="group flex min-w-[58px] flex-col items-center justify-center gap-1.5"
+            className="flex min-w-[56px] flex-col items-center gap-1 text-slate-400 transition hover:text-blue-600"
           >
-            <div className="flex h-10 w-12 items-center justify-center">
-              <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#EC4899] p-[2px] transition group-hover:scale-105">
-                <img
-                  src={profileImage}
-                  alt="Profile"
-                  className="h-full w-full rounded-full border-2 border-white object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = defaultProfilePicture;
-                  }}
-                />
-              </div>
-            </div>
-
-            <span className="text-[10px] font-semibold text-slate-400 group-hover:text-[#2563EB]">
-              Profile
+            <span className="h-[22px] w-[22px] rounded-full bg-gradient-to-tr from-blue-600 to-pink-500 p-[1.5px]">
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="h-full w-full rounded-full border border-white object-cover"
+                onError={avatarFallback}
+              />
             </span>
+            <span className="text-[10px] font-semibold">Profile</span>
+            <span className="h-1 w-1" />
           </button>
         </div>
       </nav>
@@ -1017,56 +881,51 @@ const Home = () => {
 
       {currentStory && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#08111F]/90 p-3 backdrop-blur-xl sm:p-5"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 p-3 backdrop-blur-md"
           onClick={() => setCurrentStory(null)}
         >
-
           <button
             type="button"
             onClick={() => setCurrentStory(null)}
-            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
+            aria-label="Close story"
+            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
           >
-            <FiX size={23} />
+            <FiX size={22} />
           </button>
 
           <div
-            className="relative h-[88vh] w-full max-w-[440px] overflow-hidden rounded-[28px] bg-black shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
+            className="relative h-[88vh] w-full max-w-[420px] overflow-hidden rounded-3xl bg-black shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-
             <img
               src={currentStory.post?.mediaUrl || currentStory.image}
               alt={currentStory.username}
               className="h-full w-full object-contain"
             />
 
-            {/* TOP GRADIENT */}
-
             <div className="absolute left-0 right-0 top-0 h-28 bg-gradient-to-b from-black/70 to-transparent" />
 
-            {/* USER */}
-
-            <div className="absolute left-4 top-5 flex items-center gap-3">
-
-              <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#EC4899] p-[2px]">
-                <img
-                  src={currentStory.image}
-                  alt={currentStory.username}
-                  className="h-full w-full rounded-full border-2 border-white object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src = defaultProfilePicture;
-                  }}
-                />
+            <div className="absolute left-4 right-4 top-4">
+              <div className="mb-3 h-[3px] w-full overflow-hidden rounded-full bg-white/30">
+                <div className="h-full w-full rounded-full bg-gradient-to-r from-blue-400 to-pink-400" />
               </div>
 
-              <div>
-                <p className="text-sm font-bold text-white">
-                  {currentStory.username}
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-pink-500 p-[2px]">
+                  <img
+                    src={currentStory.image}
+                    alt={currentStory.username}
+                    className="h-full w-full rounded-full border-2 border-white object-cover"
+                    onError={avatarFallback}
+                  />
+                </div>
 
-                <p className="text-[10px] text-white/70">
-                  Vlogify story
-                </p>
+                <div>
+                  <p className="text-sm font-bold text-white">
+                    {currentStory.username}
+                  </p>
+                  <p className="text-[11px] text-white/70">Vlogify story</p>
+                </div>
               </div>
             </div>
           </div>
@@ -1079,58 +938,48 @@ const Home = () => {
 
       {selectedPost && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#08111F]/80 p-3 backdrop-blur-xl sm:p-5"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-md sm:p-6"
           onClick={() => setSelectedPost(null)}
         >
-
           <div
-            className="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/20 bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] lg:flex-row"
+            className="relative flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl lg:flex-row"
             onClick={(e) => e.stopPropagation()}
           >
-
-            {/* CLOSE */}
-
             <button
               type="button"
               onClick={() => setSelectedPost(null)}
-              className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/95 text-slate-700 shadow-xl transition hover:bg-pink-50 hover:text-pink-500"
+              aria-label="Close"
+              className="absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-lg transition hover:bg-pink-50 hover:text-pink-500"
             >
-              <FiX size={22} />
+              <FiX size={20} />
             </button>
 
             {/* MEDIA */}
 
-            <div className="relative flex max-h-[62vh] flex-1 items-center justify-center overflow-hidden bg-[#F1F5FF] lg:max-h-[94vh]">
-
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-pink-50 opacity-70" />
-
-              <div className="relative z-10 flex h-full w-full items-center justify-center">
-                {selectedPost.mediaType === "video" ? (
-                  <video
-                    src={selectedPost.mediaUrl}
-                    controls
-                    autoPlay
-                    className="max-h-[62vh] max-w-full object-contain lg:max-h-[94vh]"
-                  />
-                ) : (
-                  <img
-                    src={selectedPost.mediaUrl}
-                    alt={selectedPost.caption || "Post"}
-                    className="max-h-[62vh] max-w-full object-contain lg:max-h-[94vh]"
-                  />
-                )}
-              </div>
+            <div className="relative flex max-h-[58vh] flex-1 items-center justify-center overflow-hidden bg-slate-950 lg:max-h-[92vh]">
+              {selectedPost.mediaType === "video" ? (
+                <video
+                  src={selectedPost.mediaUrl}
+                  controls
+                  autoPlay
+                  className="max-h-[58vh] max-w-full object-contain lg:max-h-[92vh]"
+                />
+              ) : (
+                <img
+                  src={selectedPost.mediaUrl}
+                  alt={selectedPost.caption || "Post"}
+                  className="max-h-[58vh] max-w-full object-contain lg:max-h-[92vh]"
+                />
+              )}
             </div>
 
             {/* DETAILS */}
 
-            <div className="flex w-full flex-col bg-white lg:w-[410px]">
-
+            <div className="flex w-full flex-col bg-white lg:w-[380px]">
               {/* USER */}
 
-              <div className="flex items-center gap-3 border-b border-slate-100 p-5">
-
-                <div className="h-11 w-11 rounded-full bg-gradient-to-tr from-[#2563EB] via-[#8B5CF6] to-[#EC4899] p-[2px]">
+              <div className="flex items-center gap-3 border-b border-slate-100 p-4 pr-16">
+                <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-to-tr from-blue-600 to-pink-500 p-[2px]">
                   <img
                     src={
                       selectedPost.user?.profilePicture ||
@@ -1140,18 +989,15 @@ const Home = () => {
                     }
                     alt={selectedPost.user?.username || "User"}
                     className="h-full w-full rounded-full border-2 border-white object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = defaultProfilePicture;
-                    }}
+                    onError={avatarFallback}
                   />
                 </div>
 
-                <div>
-                  <p className="text-sm font-extrabold text-[#172033]">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-slate-900">
                     {selectedPost.user?.username || "Unknown User"}
                   </p>
-
-                  <p className="mt-0.5 text-[11px] font-medium text-slate-400">
+                  <p className="text-xs text-slate-400">
                     {formatDate(selectedPost.createdAt)}
                   </p>
                 </div>
@@ -1159,11 +1005,10 @@ const Home = () => {
 
               {/* CAPTION */}
 
-              <div className="flex-1 overflow-y-auto p-5">
-
+              <div className="min-h-[90px] flex-1 overflow-y-auto p-4">
                 {selectedPost.caption ? (
                   <p className="text-sm leading-7 text-slate-600">
-                    <span className="font-extrabold text-[#172033]">
+                    <span className="font-bold text-slate-900">
                       {selectedPost.user?.username || "User"}
                     </span>{" "}
                     {selectedPost.caption}
@@ -1179,65 +1024,57 @@ const Home = () => {
 
               {/* ACTIONS */}
 
-              <div className="border-t border-slate-100 p-5">
-
-                <div className="flex items-center gap-2">
-
-                  {/* LIKE */}
-
+              <div className="border-t border-slate-100 p-4">
+                <div className="flex items-center">
                   <button
                     type="button"
                     onClick={() => handleLike(selectedPost._id)}
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${
-                      (likedPosts[selectedPost._id] ??
-                        selectedPost.likedByMe)
-                        ? "bg-pink-50 text-[#EC4899]"
-                        : "text-slate-700 hover:bg-pink-50 hover:text-[#EC4899]"
+                    aria-label="Like"
+                    className={`${iconBtn} ${
+                      (likedPosts[selectedPost._id] ?? selectedPost.likedByMe)
+                        ? "text-pink-500 hover:bg-pink-50 hover:text-pink-500"
+                        : "hover:bg-pink-50 hover:text-pink-500"
                     }`}
                   >
                     <FiHeart
-                      size={24}
+                      size={23}
                       fill={
-                        (likedPosts[selectedPost._id] ??
-                          selectedPost.likedByMe)
+                        (likedPosts[selectedPost._id] ?? selectedPost.likedByMe)
                           ? "currentColor"
                           : "none"
                       }
                     />
                   </button>
 
-                  {/* COMMENT */}
-
                   <button
                     type="button"
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-slate-700 transition hover:bg-blue-50 hover:text-[#2563EB]"
+                    aria-label="Comment"
+                    className={iconBtn}
                   >
-                    <FiMessageCircle size={24} />
+                    <FiMessageCircle size={23} />
                   </button>
-
-                  {/* SHARE */}
 
                   <button
                     type="button"
                     onClick={() => handleShare(selectedPost)}
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl text-slate-700 transition hover:bg-blue-50 hover:text-[#2563EB]"
+                    aria-label="Share"
+                    className={iconBtn}
                   >
-                    <FiSend size={23} />
+                    <FiSend size={22} />
                   </button>
-
-                  {/* SAVE */}
 
                   <button
                     type="button"
                     onClick={() => handleSave(selectedPost._id)}
-                    className={`ml-auto flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+                    aria-label="Save"
+                    className={`${iconBtn} ml-auto ${
                       savedPosts.includes(selectedPost._id)
-                        ? "bg-blue-50 text-[#2563EB]"
-                        : "text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]"
+                        ? "text-blue-600"
+                        : ""
                     }`}
                   >
                     <FiBookmark
-                      size={24}
+                      size={23}
                       fill={
                         savedPosts.includes(selectedPost._id)
                           ? "currentColor"
@@ -1247,9 +1084,7 @@ const Home = () => {
                   </button>
                 </div>
 
-                {/* LIKES */}
-
-                <p className="mt-4 text-sm font-extrabold text-[#172033]">
+                <p className="mt-2 px-2 text-sm font-bold text-slate-900">
                   {(
                     selectedPost.likeCount ??
                     selectedPost.likes?.length ??
@@ -1262,21 +1097,29 @@ const Home = () => {
                     : "likes"}
                 </p>
 
-                {/* COMMENT */}
+                {/* COMMENT INPUT */}
 
-                <div className="mt-4 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5 transition focus-within:border-blue-200 focus-within:bg-white focus-within:shadow-[0_5px_20px_rgba(37,99,235,0.08)]">
-
+                <div className="mt-3 flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1.5 pl-4 transition focus-within:border-blue-300 focus-within:bg-white">
                   <input
                     type="text"
-                    placeholder="Add a comment..."
-                    className="flex-1 bg-transparent px-3 py-2.5 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400"
+                    placeholder="Add a comment…"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddComment();
+                      }
+                    }}
+                    className="flex-1 bg-transparent py-1.5 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                   />
 
                   <button
                     type="button"
-                    className="rounded-xl bg-gradient-to-r from-[#2563EB] to-[#EC4899] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:shadow-md active:scale-95"
+                    onClick={handleAddComment}
+                    disabled={commentLoading || !commentText.trim()}
+                    className="rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Post
+                    {commentLoading ? "Posting..." : "Post"}
                   </button>
                 </div>
               </div>

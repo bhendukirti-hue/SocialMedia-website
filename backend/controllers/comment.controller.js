@@ -44,6 +44,11 @@ const addComment = async (req, res) => {
       text: text.trim(),
     });
 
+    // Increase comment count
+    await Post.findByIdAndUpdate(postId, {
+      $inc: { commentsCount: 1 },
+    });
+
     // Populate user information
     await comment.populate(
       "user",
@@ -146,12 +151,17 @@ const deleteComment = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
-        message:
-          "You can delete only your own comment",
+        message: "You can delete only your own comment",
       });
     }
 
+    // Delete comment
     await Comment.findByIdAndDelete(commentId);
+
+    // Decrease comment count
+    await Post.findByIdAndUpdate(comment.post, {
+      $inc: { commentsCount: -1 },
+    });
 
     return res.status(200).json({
       success: true,

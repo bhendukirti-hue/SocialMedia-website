@@ -290,7 +290,7 @@ const Reels = () => {
             ? {
                 ...current,
                 comments: fetchedComments,
-                commentCount:
+                commentsCount:
                   fetchedComments.length,
               }
             : current
@@ -304,7 +304,7 @@ const Reels = () => {
               ? {
                   ...reel,
                   comments: fetchedComments,
-                  commentCount:
+                  commentsCount:
                     fetchedComments.length,
                 }
               : reel
@@ -417,8 +417,8 @@ const Reels = () => {
                   ...(current.comments || []),
                   newComment,
                 ],
-                commentCount:
-                  (current.commentCount || 0) + 1,
+                commentsCount:
+                  (current.commentsCount || 0) + 1,
               }
             : current
         );
@@ -440,7 +440,7 @@ const Reels = () => {
             return {
               ...reel,
               comments: updatedComments,
-              commentCount:
+              commentsCount:
                 updatedComments.length,
             };
           })
@@ -666,8 +666,8 @@ const Reels = () => {
             reel.likes?.length ??
             0;
 
-          const commentCount =
-            reel.commentCount ??
+          const commentsCount =
+            reel.commentsCount ??
             reel.comments?.length ??
             0;
 
@@ -813,7 +813,7 @@ const Reels = () => {
                   </button>
 
                   <span className="mt-1 text-xs font-semibold text-white">
-                    {commentCount}
+                    {commentsCount}
                   </span>
                 </div>
 

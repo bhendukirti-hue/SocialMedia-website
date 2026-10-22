@@ -47,6 +47,9 @@ import Messages from "../pages/messages/Messages";
 import PrivateRouting from "../components/ProtectedRoute";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
+import CallScreen from './../pages/messages/CallScreen';
+import CallButton from './../pages/messages/CallButton';
+import IncomingCall from './../pages/messages/IncomingCall';
 
 // ==========================================
 // ROUTES

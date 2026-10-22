@@ -1,188 +1,52 @@
-const jwt = require("jsonwebtoken");
 
-const connectedUsers = new Map();
+const mongoose = require("mongoose");
 
-const initializeSocket = (io) => {
-  io.use((socket, next) => {
-    try {
-      const token = socket.handshake.auth?.token;
+const callSchema = new mongoose.Schema(
+  {
+    caller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    receiver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["audio", "video"],
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: [
+        "ringing",
+        "accepted",
+        "rejected",
+        "ended",
+        "missed",
+      ],
+      default: "ringing",
+    },
+    startedAt: {
+      type: Date,
+      default: null,
+    },
+    endedAt: {
+      type: Date,
+      default: null,
+    },
+    duration: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { timestamps: true }
+);
 
-      if (!token) {
-        return next(
-          new Error("Authentication token is required")
-        );
-      }
+const Call =
+  mongoose.models.Call ||
+  mongoose.model("Call", callSchema);
 
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
-
-      socket.userId =
-        decoded.id ||
-        decoded._id ||
-        decoded.userId;
-
-      if (!socket.userId) {
-        return next(
-          new Error("Invalid authentication token")
-        );
-      }
-
-      next();
-    } catch (error) {
-      console.error(
-        "Socket authentication error:",
-        error
-      );
-
-      next(
-        new Error("Socket authentication failed")
-      );
-    }
-  });
-
-  io.on("connection", (socket) => {
-    console.log(
-      "Socket connected:",
-      socket.userId
-    );
-
-    connectedUsers.set(
-      socket.userId.toString(),
-      socket.id
-    );
-
-    // =====================================================
-    // PERSONAL USER ROOM
-    // =====================================================
-
-    socket.join(
-      `user:${socket.userId}`
-    );
-
-    // =====================================================
-    // MESSAGE SENT
-    // =====================================================
-
-    socket.on(
-      "messageSent",
-      ({ message, receiverId }) => {
-        if (!message || !receiverId) return;
-
-        io.to(
-          `user:${receiverId}`
-        ).emit(
-          "newMessage",
-          message
-        );
-
-        console.log(
-          `New message sent to user ${receiverId}`
-        );
-      }
-    );
-
-    // =====================================================
-    // JOIN CONVERSATION
-    // =====================================================
-
-    socket.on(
-      "joinConversation",
-      (conversationId) => {
-        if (!conversationId) return;
-
-        socket.join(
-          `conversation:${conversationId}`
-        );
-
-        console.log(
-          `User ${socket.userId} joined conversation ${conversationId}`
-        );
-      }
-    );
-
-    // =====================================================
-    // LEAVE CONVERSATION
-    // =====================================================
-
-    socket.on(
-      "leaveConversation",
-      (conversationId) => {
-        if (!conversationId) return;
-
-        socket.leave(
-          `conversation:${conversationId}`
-        );
-      }
-    );
-
-    // =====================================================
-    // TYPING
-    // =====================================================
-
-    socket.on(
-      "typing",
-      ({ receiverId, conversationId }) => {
-        if (!receiverId) return;
-
-        io.to(
-          `user:${receiverId}`
-        ).emit(
-          "userTyping",
-          {
-            userId: socket.userId,
-            conversationId,
-          }
-        );
-      }
-    );
-
-    // =====================================================
-    // STOP TYPING
-    // =====================================================
-
-    socket.on(
-      "stopTyping",
-      ({ receiverId, conversationId }) => {
-        if (!receiverId) return;
-
-        io.to(
-          `user:${receiverId}`
-        ).emit(
-          "userStoppedTyping",
-          {
-            userId: socket.userId,
-            conversationId,
-          }
-        );
-      }
-    );
-
-    // =====================================================
-    // DISCONNECT
-    // =====================================================
-
-    socket.on("disconnect", () => {
-      console.log(
-        "Socket disconnected:",
-        socket.userId
-      );
-
-      connectedUsers.delete(
-        socket.userId.toString()
-      );
-    });
-  });
-
-  return io;
-};
-
-const getConnectedUsers = () => {
-  return connectedUsers;
-};
-
-module.exports = {
-  initializeSocket,
-  getConnectedUsers,
-};
+module.exports = Call;

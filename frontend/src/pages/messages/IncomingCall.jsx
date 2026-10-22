@@ -6,7 +6,7 @@ import {
   FiX,
 } from "react-icons/fi";
 
-import { useSocket } from "../context/SocketContext";
+import { useSocket } from "../../context/SocketContext";
 
 const IncomingCall = () => {
   const {

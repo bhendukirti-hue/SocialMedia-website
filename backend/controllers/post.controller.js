@@ -1,5 +1,6 @@
 const Post = require("../models/post.model");
 const Notification = require("../models/notification.model")
+const Comment = require("../models/comment.model");
 // ==========================================
 // CREATE POST
 // ==========================================
@@ -236,18 +237,39 @@ exports.getAllPosts = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate("user", "username profilePicture");
 
-    const postsWithLikeStatus = posts.map((post) => {
-      const postObject = post.toObject();
+    const postsWithLikeStatus = await Promise.all(
+      posts.map(async (post) => {
+        const postObject = post.toObject();
 
-      postObject.likeCount = post.likes.length;
+        // ==========================================
+        // LIKE COUNT
+        // ==========================================
 
-      postObject.likedByMe = post.likes.some(
-        (userId) =>
-          userId.toString() === req.user._id.toString()
-      );
+        postObject.likeCount = post.likes.length;
 
-      return postObject;
-    });
+        // ==========================================
+        // LIKE STATUS
+        // ==========================================
+
+        postObject.likedByMe = post.likes.some(
+          (userId) =>
+            userId.toString() === req.user._id.toString()
+        );
+
+        // ==========================================
+        // REAL COMMENT COUNT
+        // ==========================================
+
+        const realCommentCount =
+          await Comment.countDocuments({
+            post: post._id,
+          });
+
+        postObject.commentsCount = realCommentCount;
+
+        return postObject;
+      })
+    );
 
     return res.status(200).json({
       success: true,

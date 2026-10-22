@@ -1,34 +1,51 @@
+// backend/socket/socket.js
+
 const jwt = require("jsonwebtoken");
+const cookie = require("cookie");
 
 const registerCallSocket = require("./call.socket");
 
 const connectedUsers = new Map();
 
+const COOKIE_NAME = "token";
+
+// =====================================================
+// INITIALIZE SOCKET.IO
+// =====================================================
+
 const initializeSocket = (io) => {
+  // =====================================================
+  // COOKIE AUTHENTICATION
+  // =====================================================
+
   io.use((socket, next) => {
     try {
-      const token =
-        socket.handshake.auth?.token;
+      const cookieHeader =
+        socket.handshake.headers.cookie || "";
+
+      const cookies = cookie.parse(cookieHeader);
+
+      const token = cookies[COOKIE_NAME];
 
       if (!token) {
         return next(
           new Error(
-            "Authentication token is required"
+            "Authentication cookie is missing"
           )
         );
       }
 
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET_KEY
       );
 
-      socket.userId =
+      const userId =
         decoded.id ||
         decoded._id ||
         decoded.userId;
 
-      if (!socket.userId) {
+      if (!userId) {
         return next(
           new Error(
             "Invalid authentication token"
@@ -36,11 +53,13 @@ const initializeSocket = (io) => {
         );
       }
 
+      socket.userId = userId.toString();
+
       next();
     } catch (error) {
       console.error(
         "Socket authentication error:",
-        error
+        error.message
       );
 
       next(
@@ -51,24 +70,24 @@ const initializeSocket = (io) => {
     }
   });
 
+  // =====================================================
+  // SOCKET CONNECTION
+  // =====================================================
+
   io.on("connection", (socket) => {
+    const userId = socket.userId.toString();
+
     console.log(
-      "Socket connected:",
-      socket.userId
+      `Socket connected: user ${userId}, socket ${socket.id}`
     );
 
-    connectedUsers.set(
-      socket.userId.toString(),
-      socket.id
-    );
+    connectedUsers.set(userId, socket.id);
 
     // =====================================================
     // PERSONAL USER ROOM
     // =====================================================
 
-    socket.join(
-      `user:${socket.userId}`
-    );
+    socket.join(`user:${userId}`);
 
     // =====================================================
     // MESSAGE SENT
@@ -76,14 +95,12 @@ const initializeSocket = (io) => {
 
     socket.on(
       "messageSent",
-      ({ message, receiverId }) => {
+      ({ message, receiverId } = {}) => {
         if (!message || !receiverId) {
           return;
         }
 
-        io.to(
-          `user:${receiverId}`
-        ).emit(
+        io.to(`user:${receiverId}`).emit(
           "newMessage",
           message
         );
@@ -110,7 +127,7 @@ const initializeSocket = (io) => {
         );
 
         console.log(
-          `User ${socket.userId} joined conversation ${conversationId}`
+          `User ${userId} joined conversation ${conversationId}`
         );
       }
     );
@@ -138,20 +155,15 @@ const initializeSocket = (io) => {
 
     socket.on(
       "typing",
-      ({
-        receiverId,
-        conversationId,
-      }) => {
+      ({ receiverId, conversationId } = {}) => {
         if (!receiverId) {
           return;
         }
 
-        io.to(
-          `user:${receiverId}`
-        ).emit(
+        io.to(`user:${receiverId}`).emit(
           "userTyping",
           {
-            userId: socket.userId,
+            userId,
             conversationId,
           }
         );
@@ -164,20 +176,15 @@ const initializeSocket = (io) => {
 
     socket.on(
       "stopTyping",
-      ({
-        receiverId,
-        conversationId,
-      }) => {
+      ({ receiverId, conversationId } = {}) => {
         if (!receiverId) {
           return;
         }
 
-        io.to(
-          `user:${receiverId}`
-        ).emit(
+        io.to(`user:${receiverId}`).emit(
           "userStoppedTyping",
           {
-            userId: socket.userId,
+            userId,
             conversationId,
           }
         );
@@ -188,10 +195,7 @@ const initializeSocket = (io) => {
     // CALL SOCKET EVENTS
     // =====================================================
 
-    registerCallSocket(
-      io,
-      socket
-    );
+    registerCallSocket(io, socket);
 
     // =====================================================
     // DISCONNECT
@@ -199,18 +203,23 @@ const initializeSocket = (io) => {
 
     socket.on("disconnect", () => {
       console.log(
-        "Socket disconnected:",
-        socket.userId
+        `Socket disconnected: user ${userId}`
       );
 
-      connectedUsers.delete(
-        socket.userId.toString()
-      );
+      // Don't delete a newer connection if this
+      // user has connected from another tab/device.
+      if (connectedUsers.get(userId) === socket.id) {
+        connectedUsers.delete(userId);
+      }
     });
   });
 
   return io;
 };
+
+// =====================================================
+// GET CONNECTED USERS
+// =====================================================
 
 const getConnectedUsers = () => {
   return connectedUsers;

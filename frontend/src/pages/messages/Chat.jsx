@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 
 import MessageBubble from "./MessageBubble";
+import CallButton from "./CallButton";
 
 const API_URL =
   "http://localhost:8808/api";
@@ -542,20 +543,35 @@ const Chat = ({
 
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT SIDE - CALL BUTTONS + CHAT OPTIONS */}
 
-          <button
-            type="button"
-            onClick={() =>
-              setShowMenu(true)
-            }
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-slate-500 transition hover:bg-blue-50 hover:text-blue-600 active:scale-95"
-            aria-label="Chat options"
-          >
-            <FiMoreVertical
-              size={20}
+          <div className="flex flex-shrink-0 items-center gap-1">
+            {/* AUDIO CALL */}
+            <CallButton
+              user={otherUser}
+              type="audio"
             />
-          </button>
+
+            {/* VIDEO CALL */}
+            <CallButton
+              user={otherUser}
+              type="video"
+            />
+
+            {/* EXISTING CHAT OPTIONS */}
+            <button
+              type="button"
+              onClick={() =>
+                setShowMenu(true)
+              }
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-slate-500 transition hover:bg-blue-50 hover:text-blue-600 active:scale-95"
+              aria-label="Chat options"
+            >
+              <FiMoreVertical
+                size={20}
+              />
+            </button>
+          </div>
 
         </header>
 

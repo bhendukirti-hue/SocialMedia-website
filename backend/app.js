@@ -54,6 +54,7 @@ const postRoutes = require("./routes/post.route");
 const commentRoutes = require("./routes/comment.route");
 const followRoutes = require("./routes/follow.route");
 const notificationRoutes = require("./routes/notification.route");
+const callRoutes=require("./routes/call.route");
 
 // ✅ Messaging Route
 const messageRoutes = require("./routes/message.route");
@@ -76,6 +77,8 @@ app.use("/api/notifications", notificationRoutes);
 
 // ✅ Messaging API
 app.use("/api/messages", messageRoutes);
+
+app.use("api/call",callRoutes)
 
 // =======================
 // 404 Middleware
