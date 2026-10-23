@@ -66,12 +66,9 @@ const Home = () => {
 
   const fetchCurrentUser = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const response = await axios.get(`${API_URL}/auth/verify-token`, {
-        withCredentials: true,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+  withCredentials: true,
+});
 
       console.log("CURRENT USER:", response.data);
 
@@ -101,12 +98,9 @@ const Home = () => {
 
   const fetchUnreadMessageCount = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const response = await axios.get(`${API_URL}/messages/conversations`, {
-        withCredentials: true,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+  withCredentials: true,
+});
 
       if (response.data?.success) {
         const conversations = response.data.conversations || [];
@@ -174,12 +168,9 @@ const Home = () => {
       setLoadingPosts(true);
       setPostsError("");
 
-      const token = localStorage.getItem("token");
-
       const response = await axios.get(`${API_URL}/posts/all-posts`, {
-        withCredentials: true,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+  withCredentials: true,
+});
 
       console.log("ALL POSTS:", response.data);
 
