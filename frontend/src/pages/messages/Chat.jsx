@@ -21,7 +21,7 @@ import MessageBubble from "./MessageBubble";
 import CallButton from "./CallButton";
 
 const API_URL =
-  "http://localhost:8808/api";
+  "https://pixora-backend-2eai.onrender.com/api";
 
 const Chat = ({
   conversation,

@@ -79,7 +79,7 @@ const Profile = () => {
   // CONSTANTS
   // ==========================================
 
-  const API_URL = "http://localhost:8808/api";
+  const API_URL = "https://pixora-backend-2eai.onrender.com/api";
 
   const defaultProfilePicture =
     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkoB0e7_DXKsiZ1Uu5lUCkOjN01NfE9689KEqAOmYNMQ&s=10";

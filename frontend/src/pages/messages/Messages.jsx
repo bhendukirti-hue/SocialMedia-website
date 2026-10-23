@@ -10,9 +10,9 @@ import { useSearchParams } from "react-router-dom";
 
 import Chat from "./Chat";
 
-const API_URL = "http://localhost:8808/api";
+const API_URL = "https://pixora-backend-2eai.onrender.com/api";
 
-const SOCKET_URL = "http://localhost:8808";
+const SOCKET_URL = "https://pixora-backend-2eai.onrender.com";
 
 const Messages = () => {
   const [searchParams] = useSearchParams();

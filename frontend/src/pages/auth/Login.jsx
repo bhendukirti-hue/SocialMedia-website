@@ -52,7 +52,7 @@ const Login = () => {
       setLoading(true);
 
       const response = await axios.post(
-        "http://localhost:8808/api/auth/login",
+        "https://pixora-backend-2eai.onrender.com/api/auth/login",
         {
           email: formData.email,
           password: formData.password,

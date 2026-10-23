@@ -11,7 +11,7 @@ import { io } from "socket.io-client";
 
 const SocketContext = createContext(null);
 
-const SOCKET_URL = "http://localhost:8808";
+const SOCKET_URL = "https://pixora-backend-2eai.onrender.com";
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);

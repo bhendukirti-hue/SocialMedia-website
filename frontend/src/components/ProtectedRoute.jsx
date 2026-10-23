@@ -9,7 +9,7 @@ const PrivateRouting = ({ children }) => {
   const verifyToken = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8808/api/auth/verify-token",
+        "https://pixora-backend-2eai.onrender.com/api/auth/verify-token",
         {
           withCredentials: true,
         }

@@ -16,7 +16,7 @@ import {
 const Navbar = () => {
   const navigate = useNavigate();
 
-  const API_URL = "http://localhost:8808/api";
+  const API_URL = "https://pixora-backend-2eai.onrender.com/api";
 
   // ==========================================
   // STATES

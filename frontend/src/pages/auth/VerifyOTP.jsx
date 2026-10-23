@@ -57,7 +57,7 @@ const VerifyOTP = () => {
       setLoading(true);
 
       const response = await axios.post(
-        "http://localhost:8808/api/auth/verify-otp",
+        "https://pixora-backend-2eai.onrender.com/api/auth/verify-otp",
         {
           email: email,
           otp: otp,

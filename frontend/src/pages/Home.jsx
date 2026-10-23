@@ -24,7 +24,7 @@ const Home = () => {
   // API
   // ==========================================
 
-  const API_URL = "http://localhost:8808/api";
+  const API_URL = "https://pixora-backend-2eai.onrender.com/api";
 
   // ==========================================
   // STATE
@@ -136,7 +136,7 @@ const Home = () => {
 
     if (!token) return;
 
-    const socket = io("http://localhost:8808", {
+    const socket = io("https://pixora-backend-2eai.onrender.com", {
       auth: { token },
     });
 

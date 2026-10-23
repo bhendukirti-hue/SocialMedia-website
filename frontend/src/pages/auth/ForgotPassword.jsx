@@ -30,7 +30,7 @@ const ForgotPassword = () => {
       setLoading(true);
 
       const response = await axios.post(
-        "http://localhost:8808/api/auth/forgot-password",
+        "https://pixora-backend-2eai.onrender.com/api/auth/forgot-password",
         {
           email,
         }

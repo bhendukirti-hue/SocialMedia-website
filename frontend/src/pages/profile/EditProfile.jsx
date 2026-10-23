@@ -10,7 +10,7 @@ const EditProfile = () => {
   // API URL
   // ==========================================
 
-  const API_URL = "http://localhost:8808/api";
+  const API_URL = "https://pixora-backend-2eai.onrender.com/api";
 
   // ==========================================
   // DEFAULT PROFILE PICTURE

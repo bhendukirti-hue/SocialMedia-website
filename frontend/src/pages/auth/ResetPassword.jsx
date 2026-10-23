@@ -50,7 +50,7 @@ const ResetPassword = () => {
       setLoading(true);
 
       const response = await axios.post(
-        `http://localhost:8808/api/auth/reset-password/${token}`,
+        `https://pixora-backend-2eai.onrender.com/api/auth/reset-password/${token}`,
         {
           password,
         }

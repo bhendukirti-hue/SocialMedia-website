@@ -60,7 +60,7 @@ const Register = () => {
       setLoading(true);
 
       const response = await axios.post(
-        "http://localhost:8808/api/auth/register",
+        "https://pixora-backend-2eai.onrender.com/api/auth/register",
         {
           username: formData.username,
           email: formData.email,

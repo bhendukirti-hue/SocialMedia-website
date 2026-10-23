@@ -18,7 +18,7 @@ import {
   FiMoreHorizontal,
 } from "react-icons/fi";
 
-const API_URL = "http://localhost:8808/api";
+const API_URL = "https://pixora-backend-2eai.onrender.com/api";
 
 const UserProfile = () => {
   const { userId } = useParams();

@@ -8,7 +8,7 @@ import {
   FiX,
 } from "react-icons/fi";
 
-const API_URL = "http://localhost:8808/api";
+const API_URL = "https://pixora-backend-2eai.onrender.com/api";
 
 const Search = () => {
   const navigate = useNavigate();
