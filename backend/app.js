@@ -22,9 +22,14 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: allowedOrigins,
         credentials: true,
     })
 );
@@ -78,7 +83,7 @@ app.use("/api/notifications", notificationRoutes);
 // ✅ Messaging API
 app.use("/api/messages", messageRoutes);
 
-app.use("api/call",callRoutes)
+app.use("/api/call", callRoutes);
 
 // =======================
 // 404 Middleware
